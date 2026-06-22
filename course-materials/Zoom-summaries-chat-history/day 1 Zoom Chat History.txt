@@ -1,0 +1,55 @@
+2026-06-22 13:52:19 From JSystems Szkolenia To Everyone:
+	https://opencode.ai/download
+
+2026-06-22 14:07:12 From JSystems Szkolenia To Everyone:
+	Ollama list models:
+	ollama ps
+
+2026-06-22 14:07:42 From Sebastian To Everyone:
+	u mnie wygląda tak:
+
+2026-06-22 14:07:48 From Sebastian To Everyone:
+	Image 2026-06-22 at 150743.png
+
+
+2026-06-22 14:13:01 From JSystems Szkolenia To Everyone:
+	https://github.com/aristocratos/btop
+
+	https://github.com/aristocratos/btop4win
+
+2026-06-22 14:20:41 From Marcin To Everyone:
+	w opcjach połączenia w remminie na dole jest custom resolution
+
+2026-06-22 14:24:49 From JSystems Szkolenia To Everyone:
+	ollama run gemma4:e2b --verbose
+
+2026-06-22 14:27:01 From JSystems Szkolenia To Everyone:
+	https://handy.computer/
+
+	Dyktowanie komend - Open Source - STT
+
+2026-06-22 15:04:42 From JSystems Szkolenia To Everyone:
+	https://claude.ai/new#settings/usage
+
+2026-06-22 15:10:48 From JSystems Szkolenia To Everyone:
+	https://docs.spring.io/spring-ai/reference/api/chat/openai-chat.html
+
+2026-06-22 15:11:21 From JSystems Szkolenia To Everyone:
+	https://github.com/openai/openai-java
+
+2026-06-22 15:11:58 From JSystems Szkolenia To Everyone:
+	https://github.com/assistant-ui/assistant-ui
+
+2026-06-22 15:12:54 From JSystems Szkolenia To Everyone:
+	TypeScript / Next.js https://ai-sdk.dev/
+
+2026-06-22 15:15:30 From JSystems Szkolenia To Everyone:
+	DLA ZAWANSOWANYCH
+	:
+	Template: https://github.com/langgraph4j/langgraph4j-copilotkit
+
+	https://github.com/langgraph4j/langgraph4j
+
+	https://www.copilotkit.ai/
+
+	https://github.com/ag-ui-protocol/ag-ui
