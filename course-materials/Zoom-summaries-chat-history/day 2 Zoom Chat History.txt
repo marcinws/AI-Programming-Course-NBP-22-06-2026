@@ -1,0 +1,244 @@
+2026-06-23 08:04:29 From Adam To Everyone:
+	https://primefaces.dev.onsafety.com.br/
+
+2026-06-23 08:04:48 From Adam To Everyone:
+	Demo przykładowej aplikacji.
+
+2026-06-23 08:11:51 From Łukasz Matuszewski To Everyone:
+	Notatki ze szkolenia - cała wiedza:
+	https://github.com/LucasMatuszewski/AI-Programming-Course-NBP-22-06-2026/blob/main/course-materials/Course%20Notes%20-%20AI%20in%20Programming.md
+
+2026-06-23 08:13:31 From Łukasz Matuszewski To Everyone:
+	https://github.com/aaddrick/claude-desktop-debian
+
+	Claude Desktop na Linux
+
+2026-06-23 08:42:29 From Łukasz Matuszewski To Everyone:
+	https://docs.z.ai/devpack/tool/claude
+
+2026-06-23 08:46:53 From Łukasz Matuszewski To Everyone:
+	https://docs.vllm.ai/en/latest/serving/integrations/claude_code/#starting-the-vllm-server
+
+	vLLM z Claude Code
+
+2026-06-23 08:49:55 From Łukasz Matuszewski To Everyone:
+	https://opencode.ai/
+
+	OpenSource CLI i Desktop
+
+	Air-gapped:
+	https://github.com/anomalyco/opencode/issues/16117
+
+2026-06-23 09:02:30 From Łukasz Matuszewski To Everyone:
+	https://github.com/LucasMatuszewski/AI-Programming-Course-NBP-22-06-2026/tree/main
+
+2026-06-23 09:06:27 From Łukasz Matuszewski To Everyone:
+	https://en.wikipedia.org/wiki/Prompt_injection
+
+2026-06-23 09:17:16 From Łukasz Matuszewski To Everyone:
+	Trusted domains dla Claude Code environment:
+	https://code.claude.com/docs/en/claude-code-on-the-web#default-allowed-domains
+
+2026-06-23 09:22:43 From Łukasz Matuszewski To Everyone:
+	Check if nbp.pl website is up
+
+2026-06-23 09:27:10 From Łukasz Matuszewski To Everyone:
+	https://claude.ai/code/routines/trig_01XpniYE2c5zSTX9yT3zF5dL#settings/usage
+
+	usage Claude
+
+2026-06-23 10:05:16 From Łukasz Matuszewski To Everyone:
+	TOOLS for Agents:
+
+	Rules: https://github.com/LucasMatuszewski/AI-Programming-Course-NBP-22-06-2026/blob/main/course-materials/Course%20Notes%20-%20AI%20in%20Programming.md#rules
+
+2026-06-23 10:08:14 From Łukasz Matuszewski To Everyone:
+	https://code.claude.com/docs/en/memory#path-specific-rules
+
+2026-06-23 10:08:19 From Łukasz Matuszewski To Everyone:
+	Rules dla Claude Code
+
+2026-06-23 10:11:04 From Łukasz Matuszewski To Everyone:
+	mv .\AI-Programming-Course-JSystem-03-2026\ .\03-2026-NBP
+
+2026-06-23 10:19:23 From Łukasz Matuszewski To Everyone:
+	koniec przerwy 11:35
+
+2026-06-23 11:12:47 From Łukasz Matuszewski To Everyone:
+	https://github.com/LucasMatuszewski/AI-Programming-Course-NBP-22-06-2026/tree/main
+
+2026-06-23 11:19:21 From Sebastian To Everyone:
+	CONTEXT7_API_KEY ?
+
+2026-06-23 11:20:49 From Łukasz Matuszewski To Everyone:
+	shift + tab
+	Zmiana trybu pracy, np. auto mode, plan, itd.
+
+2026-06-23 11:26:24 From Łukasz Matuszewski To Everyone:
+	? = najpopularniejsze skróty
+
+2026-06-23 11:33:17 From Łukasz Matuszewski To Everyone:
+	ctrl + g = tworzenie prompta w osobnym edytorze
+
+2026-06-23 11:47:53 From Łukasz Matuszewski To Everyone:
+	https://github.com/LucasMatuszewski/AI-Programming-Course-NBP-22-06-2026/blob/main/course-materials/Course%20Notes%20-%20AI%20in%20Programming.md#mcp
+
+2026-06-23 11:48:05 From Łukasz Matuszewski To Everyone:
+	MCP Server
+
+2026-06-23 11:53:34 From Łukasz Matuszewski To Everyone:
+	Przykłady MCP:
+	https://playwright.dev/
+	https://playwright.dev/docs/getting-started-mcp
+
+2026-06-23 11:54:05 From Łukasz Matuszewski To Everyone:
+	Contex7 MCP do dokumentacji:
+	https://context7.com/
+
+2026-06-23 11:57:16 From Sebastian To Everyone:
+	 No MCP servers configured. Please run /doctor if this is unexpected. Otherwise, run claude mcp --help or visit https://code.claude.com/docs/en/mcp to learn more.
+
+2026-06-23 11:57:17 From Sebastian To Everyone:
+	?
+
+2026-06-23 11:59:01 From Łukasz Matuszewski To Everyone:
+	https://context7.com/spring-projects/spring-ai
+
+2026-06-23 12:00:57 From Łukasz Matuszewski To Everyone:
+	Koniec przerwy 13:30
+
+2026-06-23 12:07:22 From Łukasz Matuszewski To Everyone:
+	https://apps.microsoft.com/detail/9n0dx20hk701?hl=en-US&gl=NL
+
+2026-06-23 12:13:28 From Łukasz Matuszewski To Everyone:
+	WezTerm
+	https://github.com/wezterm/wezterm
+
+2026-06-23 12:13:47 From Łukasz Matuszewski To Everyone:
+	Releases:
+	https://github.com/wezterm/wezterm/releases
+
+2026-06-23 12:33:39 From Łukasz Matuszewski To Everyone:
+	MCP Protocol standard
+
+	https://modelcontextprotocol.io/docs/getting-started/intro
+
+2026-06-23 12:46:00 From Łukasz Matuszewski To Everyone:
+	claude mcp add playwright npx @playwright/mcp@latest
+
+2026-06-23 13:04:05 From Łukasz Matuszewski To Everyone:
+	CONTEXT7_API_KEY
+
+2026-06-23 13:19:59 From Mateusz To Everyone:
+	{B458B292-C576-4984-9717-5C5B56783639}.png
+
+2026-06-23 13:26:14 From Łukasz Matuszewski To Everyone:
+	https://github.com/LucasMatuszewski/AI-Programming-Course-NBP-22-06-2026/blob/main/course-materials/Course%20Notes%20-%20AI%20in%20Programming.md#agentsmd
+
+	AGENTS.md
+
+2026-06-23 13:57:40 From Łukasz Matuszewski To Everyone:
+	Nowa linia:
+	ctrl + j
+	backslesh \
+
+2026-06-23 13:58:30 From Łukasz Matuszewski To Everyone:
+	 We are initiating a new Java project, which is not ready yet. We don't have any code, but we want to start with a new hook in Claude Code, which will automatically check every time we install a new dependency in Maven. This hook should validate the dependency. It should instruct the agent to research the security of this dependency and determine if it's safe to use. Search how we can create this type of hook, how we can trigger it, and how we can match that we are installing Maven dependencies in our project. Search in docs: https://code.claude.com/docs/en/hooks-guide
+
+2026-06-23 14:04:11 From Łukasz Matuszewski To Everyone:
+	shift + tab
+	zmiana trybu pracy (edit, plan , auto mode)
+
+2026-06-23 14:17:24 From Łukasz Matuszewski To Everyone:
+	moja ścieżka projektu:
+	C:\Users\labuser\DEV\AI-Programming-Course-NBP-22-06-2026
+
+2026-06-23 14:19:55 From Łukasz Matuszewski To Everyone:
+	PS C:\Users\labuser> cd .\DEV\AI-Programming-Course-NBP-22-06-2026\
+	PS C:\Users\labuser\DEV\AI-Programming-Course-NBP-22-06-2026> claude
+
+2026-06-23 14:24:10 From Kris To Everyone:
+	LLM/LRM wykorzystywane do systemu sterowania rojem dronów:
+
+	https://github.com/Pold87/LLM2Swarm
+
+	https://github.com/Pold87/LLM2Swarm/blob/main/videos/01_LLM2Swarm_controller_synthesis.mp4
+
+	https://www.focus.pl/artykul/chinskie-drony-wojskowe-llm
+
+	https://www.chip.pl/2024/11/chiny-system-wojny-elektronicznej-llm
+
+2026-06-23 14:27:59 From Łukasz Matuszewski To Everyone:
+	Moje settings z hookiem dla Maven dependency skan:
+	https://github.com/LucasMatuszewski/AI-Programming-Course-NBP-22-06-2026/blob/main/.claude/settings.json
+
+2026-06-23 14:33:08 From Łukasz Matuszewski To Everyone:
+	https://github.com/LucasMatuszewski/AI-Programming-Course-NBP-22-06-2026/blob/main/course-materials/Course%20Notes%20-%20AI%20in%20Programming.md#skillsmd
+
+	Skills w notatkach ze szkolenia
+
+2026-06-23 14:33:17 From Łukasz Matuszewski To Everyone:
+	skills docs
+	https://code.claude.com/docs/en/skills
+
+2026-06-23 14:37:52 From Łukasz Matuszewski To Everyone:
+	wyszukiwarka i instalator Skills dla agentów:
+
+	https://www.skills.sh/
+
+2026-06-23 14:44:02 From Łukasz Matuszewski To Everyone:
+	https://github.com/github/awesome-copilot/tree/main/skills/java-junit
+
+2026-06-23 14:48:19 From Łukasz Matuszewski To Everyone:
+	npx skills add https://github.com/github/awesome-copilot --skill java-docs
+
+2026-06-23 14:48:24 From Łukasz Matuszewski To Everyone:
+	https://www.skills.sh/github/awesome-copilot/java-docs
+
+2026-06-23 15:02:51 From Łukasz Matuszewski To Everyone:
+	https://github.com/JuliusBrussee/caveman/blob/main/skills/caveman/SKILL.md
+
+2026-06-23 15:03:35 From Łukasz Matuszewski To Everyone:
+	https://github.com/LucasMatuszewski/AI-Programming-Course-NBP-22-06-2026/blob/main/course-materials/Prompt%20examples/PRD-generation-prompt-promtcowboy.md
+
+2026-06-23 15:05:09 From Łukasz Matuszewski To Everyone:
+	 /write-a-prd
+
+	mój custom skill dla tworzenia dokumentacji wymagań projektu
+
+2026-06-23 15:05:58 From Łukasz Matuszewski To Everyone:
+	https://github.com/LucasMatuszewski/AI-Programming-Course-NBP-22-06-2026/tree/main/course-materials/Prompt%20examples
+
+	Zaraz tu będzie dodatkowy plik do PRD z promptem
+
+2026-06-23 15:13:13 From Kris To Everyone:
+	{9E38954F-DABA-414E-8AC5-9A8974F17279}.png
+
+2026-06-23 15:13:32 From Sebastian To Everyone:
+	Image 2026-06-23 at 161329.png
+
+2026-06-23 15:13:34 From Sebastian To Everyone:
+	??
+
+2026-06-23 15:14:42 From Kris To Everyone:
+	{8C7A5892-E871-436F-A184-C321CD9E90EF}.png
+
+2026-06-23 15:15:27 From Łukasz Matuszewski To Everyone:
+	https://status.claude.com/
+
+	Claude Status
+
+2026-06-23 15:16:33 From Sebastian To Everyone:
+	Image 2026-06-23 at 161630.png
+
+2026-06-23 15:16:42 From Sebastian To Everyone:
+	API Error: 529 Overloaded. This is a server-side issue, usually temporary — try again in a moment. If it persists, check https://status.claude.com.
+
+2026-06-23 15:24:36 From Łukasz Matuszewski To Everyone:
+	Rules - dokumentacja:
+	https://github.com/LucasMatuszewski/AI-Programming-Course-NBP-22-06-2026/blob/main/course-materials/Course%20Notes%20-%20AI%20in%20Programming.md#rules
+
+2026-06-23 15:27:16 From Łukasz Matuszewski To Everyone:
+	https://restic.net/
+
+	Backups co 1h polecam
