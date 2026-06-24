@@ -1,0 +1,282 @@
+2026-06-24 08:13:28 From Łukasz Matuszewski To Everyone:
+	https://github.com/LucasMatuszewski/AI-Programming-Course-NBP-22-06-2026/tree/main/course-materials/Zoom-summaries-chat-history
+
+	Chat History + Podsumowanie Zoom
+
+2026-06-24 08:15:01 From Łukasz Matuszewski To Everyone:
+	Aktualny plik z notatkami ze szkolenia:
+	https://github.com/LucasMatuszewski/AI-Programming-Course-NBP-22-06-2026/blob/main/course-materials/Course%20Notes%20-%20AI%20in%20Programming.md
+
+2026-06-24 08:18:49 From Sebastian To Everyone:
+	po wysłaniu maila do dev*@devpowers.com jakiego efektu mamy oczekiwać ?
+
+2026-06-24 08:31:56 From Łukasz Matuszewski To Everyone:
+	https://github.com/LucasMatuszewski/AI-Programming-Course-NBP-22-06-2026/blob/main/course-materials/Prompt%20examples/PRD-electronics-returns-complains-app.md
+
+	Prompt przykładowy do PRD - reklamacje sprzętu elektronicznego
+
+2026-06-24 08:51:15 From Łukasz Matuszewski To Everyone:
+	https://www.sqlite.ai/sqlite-vector
+
+	Vector DB w SL Lite dla RAG / bazy wiedzy
+
+2026-06-24 08:52:23 From Łukasz Matuszewski To Everyone:
+	Reranking, wyszukiwanie hybrydowe w RAG
+
+2026-06-24 09:23:51 From Łukasz Matuszewski To Everyone:
+	PS C:\Users\labuser> cd .\DEV\AI-Programming-Course-NBP-22-06-2026\
+	PS C:\Users\labuser\DEV\AI-Programming-Course-NBP-22-06-2026> claude
+
+2026-06-24 09:24:20 From Łukasz Matuszewski To Everyone:
+	Kontynuacja sesji ostatniej:
+	claude --continue
+
+2026-06-24 09:25:53 From Łukasz Matuszewski To Everyone:
+	/resume - lista poprzednich sesji z claude - wybór i kontynuacja
+
+2026-06-24 09:32:45 From Łukasz Matuszewski To Everyone:
+	/new - nowa sesja
+	/fork - kopia sesji
+	/rewind - cofnięcie kroków
+
+2026-06-24 09:37:29 From Łukasz Matuszewski To Everyone:
+	/model - zmiana modelu LLM
+
+2026-06-24 09:43:15 From Łukasz Matuszewski To Everyone:
+	Prompt dla stworzenia PRD aplikacji testowej:
+	https://github.com/LucasMatuszewski/AI-Programming-Course-NBP-22-06-2026/blob/main/course-materials/Prompt%20examples/PRD-electronics-returns-complains-app.md
+
+2026-06-24 10:00:02 From Łukasz Matuszewski To Everyone:
+	keep MVP minimal, but mention the optional future functionalities as a planned Backlog to let agents plan the architecture with these
+	features in minde to make the future implementation easier
+
+2026-06-24 10:09:28 From Łukasz Matuszewski To Everyone:
+	zmiana trybu pracy również w trakcie pracy agenta:
+	shift + tab
+
+2026-06-24 10:12:47 From Piotr To Everyone:
+	u mnie powstały po angielsku: rturn-policy i complaint-policy
+
+2026-06-24 10:12:55 From Łukasz Matuszewski To Everyone:
+	create example docs/policies/polityka-zwrotow.md and docs/policies/polityka-reklamacji.md documents based on Polish and EU law
+
+2026-06-24 10:14:28 From Łukasz Matuszewski To Everyone:
+	koniec przerwy 11:30
+
+2026-06-24 10:52:53 From Łukasz Matuszewski To Everyone:
+	ctrl+o
+	podgląd historii i detali sesji
+
+2026-06-24 10:54:02 From Łukasz Matuszewski To Everyone:
+	Branch na którym ja pracuję tworząc testową aplikację:
+	https://github.com/LucasMatuszewski/AI-Programming-Course-NBP-22-06-2026/tree/electronic-complains-chat-app
+
+2026-06-24 10:54:18 From Łukasz Matuszewski To Everyone:
+	PRD
+	https://github.com/LucasMatuszewski/AI-Programming-Course-NBP-22-06-2026/blob/electronic-complains-chat-app/docs/PRD-Product-Requirements-Document.md
+
+2026-06-24 11:00:23 From Łukasz Matuszewski To Everyone:
+	PROMPT
+	@.agents/skills/create-design-system\ create a symlink / junction to @.claude/skills\
+
+2026-06-24 11:07:32 From Łukasz Matuszewski To Everyone:
+	/skills - list skills
+
+2026-06-24 11:07:41 From Łukasz Matuszewski To Everyone:
+	caveman skill - save tokens
+
+2026-06-24 11:07:43 From Łukasz Matuszewski To Everyone:
+	https://www.skills.sh/juliusbrussee/caveman/caveman
+
+2026-06-24 11:09:35 From Łukasz Matuszewski To Everyone:
+	npx skills add https://github.com/juliusbrussee/caveman --skill caveman
+
+2026-06-24 11:17:49 From Sebastian To Everyone:
+	skill wygenerował mi przykładowe view :D
+	Image 2026-06-24 at 121744.png
+
+2026-06-24 11:20:59 From Łukasz Matuszewski To Everyone:
+	Retro PC simulator:
+	https://pieter.com/
+
+2026-06-24 11:31:07 From Łukasz Matuszewski To Everyone:
+	Custom commands:
+	https://opencode.ai/docs/commands/
+
+2026-06-24 11:38:15 From Łukasz Matuszewski To Everyone:
+	/create-design-system https://nbp.pl/
+
+	PROMPT przykładowy dla dowolnej strony design system / design tokens
+
+2026-06-24 11:54:56 From Łukasz Matuszewski To Everyone:
+	/tasks - komendy i procesy w tle
+
+2026-06-24 11:56:43 From Sebastian To Everyone:
+	Image 2026-06-24 at 125639.png
+
+2026-06-24 11:56:45 From Sebastian To Everyone:
+	tool update mi nie działa
+
+2026-06-24 11:57:07 From Sebastian To Everyone:
+	czasami - jest jakiś log żeby zobaczyć czemu?
+
+2026-06-24 11:57:36 From Sebastian To Everyone:
+	chyba, że to przez to: PRD already at 10 MB (your earlier edit). Updating the design guidelines. (ręcznie poprawiłem z 5 MB)
+
+2026-06-24 11:57:41 From Sebastian To Everyone:
+	?
+
+2026-06-24 11:58:49 From Łukasz Matuszewski To Everyone:
+	https://claude.ai/code/routines#settings/usage
+
+2026-06-24 12:02:50 From Łukasz Matuszewski To Everyone:
+	ctrl+o
+
+2026-06-24 12:02:56 From Sebastian To Everyone:
+	Error: File has been modified since read, either by the user or by a linter. Read it again before attempting to write it.
+
+2026-06-24 12:02:57 From Sebastian To Everyone:
+	:D
+
+2026-06-24 12:03:03 From Łukasz Matuszewski To Everyone:
+	podgląd szczegółów sesji, wywołań tools
+
+2026-06-24 12:11:10 From Sebastian To Everyone:
+	/voice
+
+2026-06-24 12:11:11 From Sebastian To Everyone:
+	;)
+
+2026-06-24 12:15:46 From Piotr To Everyone:
+	nieśmiało przypominam o przerwie o 13stej ;)
+	Kris D.:😯
+
+2026-06-24 12:17:48 From Łukasz Matuszewski To Everyone:
+	                  kolejny krok - ADR skill:
+	https://github.com/LucasMatuszewski/AI-Programming-Course-NBP-22-06-2026/blob/main/.agents/skills/create-adr/SKILL.md
+
+2026-06-24 12:19:44 From Łukasz Matuszewski To Everyone:
+	13:50 koniec przerwy
+
+2026-06-24 12:38:24 From Łukasz Matuszewski To Everyone:
+	nested subagents
+	https://code.claude.com/docs/en/sub-agents#spawn-nested-subagents
+
+2026-06-24 12:59:27 From Łukasz Matuszewski To Everyone:
+	https://code.claude.com/docs/en/agent-sdk/slash-commands#creating-custom-slash-commands
+
+	Claude Custom Commands
+
+2026-06-24 13:14:54 From Łukasz Matuszewski To Everyone:
+	OpenAI SDK oficjalne dla Java:
+	https://github.com/openai/openai-java
+	https://developers.openai.com/api/docs/libraries
+
+2026-06-24 13:16:21 From Łukasz Matuszewski To Everyone:
+	Spring AI Chat z OpenAI SDK:
+	https://docs.spring.io/spring-ai/reference/api/chat/openai-chat.html
+
+2026-06-24 13:22:53 From Łukasz Matuszewski To Everyone:
+	https://github.com/assistant-ui/assistant-ui
+
+	React chat UI library
+
+2026-06-24 13:28:39 From Łukasz Matuszewski To Everyone:
+	https://ai-sdk.dev/docs/introduction
+
+	AI SDK dla TypeScript
+	Dla Next.js, React, Vue, Nuxt, Svelta, itd.
+
+2026-06-24 13:29:22 From Łukasz Matuszewski To Everyone:
+	LangGraph for Java - framework dla zaawansowanych aplikacji wielu agentów:
+	https://github.com/langgraph4j/langgraph4j
+
+2026-06-24 13:31:33 From Łukasz Matuszewski To Everyone:
+	https://www.copilotkit.ai/
+	https://github.com/langgraph4j/langgraph4j-copilotkit
+
+
+	CopilotKit z AG-UI protocol - agent obsługuje zaawansowany UI jako narzędzie
+
+2026-06-24 13:31:51 From Łukasz Matuszewski To Everyone:
+	https://github.com/ag-ui-protocol/ag-ui
+
+2026-06-24 13:33:03 From Marcin To Everyone:
+	https://github.com/angular/skills
+	Skille do angulara
+
+2026-06-24 13:33:26 From Łukasz Matuszewski To Everyone:
+	https://github.com/ag-ui-protocol/ag-ui/tree/main/sdks/community/java
+
+	AG-UI Java SDK
+	Ma już pakiet Maven
+
+2026-06-24 13:44:32 From Łukasz Matuszewski To Everyone:
+	Tauri desktop app oparte o Rust wypierające Electron.js
+	https://v2.tauri.app/
+
+2026-06-24 13:55:58 From Łukasz Matuszewski To Everyone:
+	OPENROUTER_API_KEY
+
+	https://openrouter.ai/
+
+2026-06-24 14:00:53 From Łukasz Matuszewski To Everyone:
+	OpenRouter
+	dla Anthropic messages endpoint: https://openrouter.ai/docs/api/api-reference/anthropic-messages/create-messages
+
+2026-06-24 14:04:52 From Łukasz Matuszewski To Everyone:
+	OpenAI endpoint Chat Completions (poprzedni standard, bardziej rozpowszechniony):
+	https://openrouter.ai/docs/api/api-reference/chat/send-chat-completion-request
+
+	Nowy OpenAI Responses API (mniej powszechnie używany, Beta w OpenRouter):
+	https://openrouter.ai/docs/api/reference/responses/overview
+
+2026-06-24 14:10:45 From Łukasz Matuszewski To Everyone:
+	https://developers.openai.com/api/docs/libraries?language=java
+
+2026-06-24 14:19:44 From Łukasz Matuszewski To Everyone:
+	/create-adr create ADR documents based on @docs/PRD-Product-Requirements-Document.md
+
+	Make research how to implement functionalities from PRD using the below libraries:
+	https://github.com/openai/openai-java
+	https://developers.openai.com/api/docs/libraries?language=java
+
+	Resaerch also if we should use Responses API or Completions API.
+	You should use endpoints from OpenRouter that are specified with example ENV keys in @.env.example
+	Docs from OpenRouter for Responses API: https://openrouter.ai/docs/api/reference/responses/overview
+
+	Use Maven and initialize this project for me, use Spring Boot.
+
+	Use Angular and Angular Material for FE and Web app. Search for ready to use components to implement chat UI and maybe also streaming from our BE that is ready to use for Angualar Material.
+
+2026-06-24 14:22:13 From Łukasz Matuszewski To Everyone:
+
+	"Read(.env)",
+	"Read(.env.local)",
+	"Read(.env.prod)",
+	"Read(.env.stage)",
+	"Read(**/.env)",
+
+2026-06-24 14:23:33 From Łukasz Matuszewski To Everyone:
+	w pliku: .claude\settings.json
+
+	odblokowanie .env.example
+
+2026-06-24 14:31:22 From Łukasz Matuszewski To Everyone:
+	/context
+
+2026-06-24 15:01:17 From Sebastian To Everyone:
+	You've used 95% of your session limit :)
+
+2026-06-24 15:02:02 From Łukasz Matuszewski To Everyone:
+	SSE Streaming - most popular (Server-Sent Events)
+
+2026-06-24 15:06:39 From Łukasz Matuszewski To Everyone:
+	https://github.com/LucasMatuszewski/AI-Programming-Course-NBP-22-06-2026/blob/electronic-complains-chat-app/course-materials/Prompt%20examples/Plan-SubAgents-matrix-dependency-map.md
+
+2026-06-24 15:06:43 From Łukasz Matuszewski To Everyone:
+	@docs/ADR\ update sub-agents for Claude Code to use libraries specified in ADR @.claude/agents\
+	Check other files - search for React, Assistant-ui and AI SDK phrases in repo, align with our decisions in ADR.
+
+2026-06-24 15:07:24 From Damian To Everyone:
+	***, do jutra
