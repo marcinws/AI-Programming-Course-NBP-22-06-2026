@@ -1,0 +1,160 @@
+<!-- Intake Form — P2.F1 | All user-facing text in Polish (AC-23) -->
+
+<div class="intake-form-page">
+  <mat-card class="intake-form-card">
+    <mat-card-header class="intake-form-header">
+      <mat-card-title class="intake-form-title">Nowe zgłoszenie sprzętowe</mat-card-title>
+      <mat-card-subtitle class="intake-form-subtitle">
+        Wypełnij formularz, a system zaproponuje decyzję dotyczącą reklamacji lub zwrotu.
+      </mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content>
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate class="intake-form">
+
+        <!-- 1. Typ zgłoszenia (caseType) -->
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Typ zgłoszenia</mat-label>
+          <mat-select formControlName="caseType">
+            @for (opt of caseTypeOptions(); track opt.id) {
+              <mat-option [value]="opt.id">{{ opt.labelPl }}</mat-option>
+            }
+          </mat-select>
+          @if (form.get('caseType')?.hasError('required') && form.get('caseType')?.touched) {
+            <mat-error>Wybierz typ zgłoszenia.</mat-error>
+          }
+        </mat-form-field>
+
+        <!-- 2. Kategoria sprzętu (equipmentCategory) -->
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Kategoria sprzętu</mat-label>
+          <mat-select formControlName="equipmentCategory">
+            @for (opt of categoryOptions(); track opt.id) {
+              <mat-option [value]="opt.id">{{ opt.labelPl }}</mat-option>
+            }
+          </mat-select>
+          @if (form.get('equipmentCategory')?.hasError('required') && form.get('equipmentCategory')?.touched) {
+            <mat-error>Wybierz kategorię sprzętu.</mat-error>
+          }
+        </mat-form-field>
+
+        <!-- 3. Model / nazwa urządzenia (modelName) -->
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Model / nazwa urządzenia</mat-label>
+          <input matInput formControlName="modelName" placeholder="np. iPhone 15, ThinkPad X1" />
+          @if (form.get('modelName')?.hasError('required') && form.get('modelName')?.touched) {
+            <mat-error>Podaj model lub nazwę urządzenia.</mat-error>
+          }
+        </mat-form-field>
+
+        <!-- 4. Data zakupu (purchaseDate) — future disabled via [max] -->
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Data zakupu</mat-label>
+          <input
+            matInput
+            [matDatepicker]="picker"
+            [max]="today"
+            formControlName="purchaseDate"
+            placeholder="DD.MM.RRRR"
+            readonly
+          />
+          <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+          <mat-datepicker #picker></mat-datepicker>
+          @if (form.get('purchaseDate')?.hasError('required') && form.get('purchaseDate')?.touched) {
+            <mat-error>Podaj datę zakupu.</mat-error>
+          }
+          @if (form.get('purchaseDate')?.hasError('matDatepickerMax')) {
+            <mat-error>Data zakupu nie może być w przyszłości.</mat-error>
+          }
+        </mat-form-field>
+
+        <!-- 5. Przyczyna zgłoszenia (reason) — required only for COMPLAINT -->
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>
+            Przyczyna zgłoszenia
+            @if (form.get('caseType')?.value === 'COMPLAINT') {
+              <span class="required-mark"> *</span>
+            }
+          </mat-label>
+          <textarea
+            matInput
+            formControlName="reason"
+            rows="4"
+            placeholder="Opisz przyczynę zgłoszenia..."
+          ></textarea>
+          @if (form.get('reason')?.hasError('required') && form.get('reason')?.touched) {
+            <mat-error>Podaj przyczynę reklamacji.</mat-error>
+          }
+          @if (form.get('caseType')?.value === 'RETURN') {
+            <mat-hint>Pole opcjonalne dla zgłoszeń zwrotu.</mat-hint>
+          }
+        </mat-form-field>
+
+        <!-- 6. Zdjęcie sprzętu — file upload with preview -->
+        <div class="file-upload-section">
+          <p class="file-upload-label">
+            Zdjęcie sprzętu <span class="required-mark">*</span>
+          </p>
+          <p class="file-upload-hint">
+            Akceptowane formaty: JPEG, PNG, WebP. Maksymalny rozmiar: 10 MB.
+          </p>
+
+          @if (!selectedFile()) {
+            <button
+              mat-stroked-button
+              type="button"
+              class="file-pick-btn"
+              (click)="fileInput.click()"
+            >
+              <mat-icon>upload_file</mat-icon>
+              Wybierz zdjęcie
+            </button>
+          }
+
+          <input
+            #fileInput
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            class="file-input-hidden"
+            (change)="onFileInputChange($event)"
+          />
+
+          @if (fileError()) {
+            <p class="file-error">{{ fileError() }}</p>
+          }
+
+          @if (selectedFile() && previewUrl()) {
+            <div class="file-preview">
+              <img [src]="previewUrl()" alt="Podgląd zdjęcia" class="preview-img" />
+              <div class="preview-meta">
+                <span class="preview-name">{{ selectedFile()!.name }}</span>
+                <button
+                  mat-icon-button
+                  type="button"
+                  class="remove-btn"
+                  (click)="removeFile()"
+                  aria-label="Usuń plik"
+                >
+                  <mat-icon>close</mat-icon>
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+
+        <!-- Submit -->
+        <div class="submit-row">
+          <button
+            mat-flat-button
+            type="submit"
+            class="submit-btn"
+            [disabled]="isSubmitDisabled"
+          >
+            Wyślij zgłoszenie
+          </button>
+        </div>
+
+      </form>
+    </mat-card-content>
+  </mat-card>
+</div>

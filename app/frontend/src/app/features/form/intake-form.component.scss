@@ -1,0 +1,213 @@
+// Intake Form styles — NBP design tokens applied
+// Tokens source: example/assets/design-tokens.json + example/design-guidelines.md
+
+// ---------------------------------------------------------------------------
+// NBP token variables
+// ---------------------------------------------------------------------------
+$nbp-primary:      #152E52;
+$nbp-accent:       #4A74B0;
+$nbp-gold:         #E8D499;
+$nbp-bg-light:     #F7F7F7;
+$nbp-border:       #BFCEDD;
+$nbp-text:         #464646;
+$nbp-text-muted:   #6B7280;
+$nbp-error:        #C0392B;
+
+// Typography
+$font-heading:     'Brygada 1918', Georgia, 'Times New Roman', serif;
+$font-body:        'Libre Franklin', -apple-system, Arial, sans-serif;
+
+// Spacing (4px base)
+$sp-2:  8px;
+$sp-3: 12px;
+$sp-4: 16px;
+$sp-5: 20px;
+$sp-6: 24px;
+$sp-8: 32px;
+$sp-10: 40px;
+
+// Radius
+$r-md: 4px;
+$r-lg: 6px;
+
+// ---------------------------------------------------------------------------
+// Page layout
+// ---------------------------------------------------------------------------
+.intake-form-page {
+  min-height: 100vh;
+  background-color: $nbp-bg-light;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: $sp-8 $sp-4;
+}
+
+// ---------------------------------------------------------------------------
+// Card
+// ---------------------------------------------------------------------------
+.intake-form-card {
+  width: 100%;
+  max-width: 640px;
+  border: 1px solid $nbp-border;
+  border-radius: $r-lg;
+  background-color: #ffffff;
+  box-shadow: 0 2px 8px rgba(21, 46, 82, 0.08);
+}
+
+// ---------------------------------------------------------------------------
+// Header
+// ---------------------------------------------------------------------------
+.intake-form-header {
+  background-color: $nbp-primary;
+  border-radius: $r-lg $r-lg 0 0;
+  padding: $sp-5 $sp-6;
+}
+
+.intake-form-title {
+  color: #ffffff;
+  font-family: $font-heading;
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1.33;
+  margin: 0 0 $sp-2;
+}
+
+.intake-form-subtitle {
+  color: rgba(255, 255, 255, 0.82);
+  font-family: $font-body;
+  font-size: 14px;
+  line-height: 1.55;
+  margin: 0;
+}
+
+// ---------------------------------------------------------------------------
+// Form body
+// ---------------------------------------------------------------------------
+.intake-form {
+  display: flex;
+  flex-direction: column;
+  gap: $sp-4;
+  padding: $sp-5 $sp-6 $sp-6;
+}
+
+.form-field {
+  width: 100%;
+}
+
+// ---------------------------------------------------------------------------
+// File upload section
+// ---------------------------------------------------------------------------
+.file-upload-section {
+  display: flex;
+  flex-direction: column;
+  gap: $sp-3;
+}
+
+.file-upload-label {
+  font-family: $font-body;
+  font-size: 15.5px;
+  font-weight: 500;
+  color: $nbp-text;
+  margin: 0;
+}
+
+.file-upload-hint {
+  font-family: $font-body;
+  font-size: 13px;
+  color: $nbp-text-muted;
+  margin: 0;
+}
+
+.required-mark {
+  color: $nbp-error;
+}
+
+.file-pick-btn {
+  align-self: flex-start;
+  border-color: $nbp-border;
+  color: $nbp-primary;
+  font-family: $font-body;
+  font-weight: 500;
+  border-radius: $r-md;
+
+  mat-icon {
+    margin-right: $sp-2;
+  }
+}
+
+.file-input-hidden {
+  display: none;
+}
+
+.file-error {
+  font-family: $font-body;
+  font-size: 13px;
+  color: $nbp-error;
+  margin: 0;
+}
+
+.file-preview {
+  display: flex;
+  align-items: flex-start;
+  gap: $sp-4;
+  padding: $sp-3;
+  border: 1px solid $nbp-border;
+  border-radius: $r-lg;
+  background-color: $nbp-bg-light;
+}
+
+.preview-img {
+  width: 96px;
+  height: 96px;
+  object-fit: cover;
+  border-radius: $r-md;
+  border: 1px solid $nbp-border;
+  flex-shrink: 0;
+}
+
+.preview-meta {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: $sp-2;
+}
+
+.preview-name {
+  font-family: $font-body;
+  font-size: 13px;
+  color: $nbp-text;
+  word-break: break-all;
+}
+
+.remove-btn {
+  align-self: flex-start;
+  color: $nbp-text-muted;
+}
+
+// ---------------------------------------------------------------------------
+// Submit row
+// ---------------------------------------------------------------------------
+.submit-row {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: $sp-4;
+}
+
+.submit-btn {
+  background-color: $nbp-accent;
+  color: #ffffff;
+  font-family: $font-body;
+  font-weight: 500;
+  border-radius: $r-md;
+  padding: $sp-2 $sp-6;
+  min-width: 180px;
+
+  &:hover:not([disabled]) {
+    background-color: #3C6398;
+  }
+
+  &[disabled] {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
