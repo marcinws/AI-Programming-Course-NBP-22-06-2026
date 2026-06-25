@@ -48,3 +48,6 @@ Thumbs.db
 
 # Claude Code worktrees (local, per-session)
 .claude/worktrees/
+
+# stray agent-memory artifact
+app/frontend/.claude/
