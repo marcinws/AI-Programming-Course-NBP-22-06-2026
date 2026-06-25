@@ -1,7 +1,7 @@
 ---
 name: create-design-system
 description: Extract a design system from any website URL using Playwright MCP. Produces design tokens (JSON), brand assets (logo SVG, favicon), a homepage screenshot, and a design-guidelines.md document. Use when the user wants to clone, match, or stay consistent with an external brand.
-allowed-tools: mcp__playwright__browser_navigate, mcp__playwright__browser_click, mcp__playwright__browser_evaluate, mcp__playwright__browser_take_screenshot, Write, Bash
+allowed-tools: mcp__playwright__browser_navigate, mcp__playwright__browser_snapshot, mcp__playwright__browser_wait_for, mcp__playwright__browser_click, mcp__playwright__browser_evaluate, mcp__playwright__browser_take_screenshot, mcp__playwright__browser_close, Write, Bash
 ---
 
 # Create Design System from Website
@@ -22,27 +22,46 @@ mkdir -p assets docs
 
 ### Step 2 — Navigate and dismiss overlays
 
-Navigate to the URL, then **always** check for and dismiss overlays before doing anything else. Cookie consent dialogs and welcome modals block layout and skew computed styles.
+> ⚠️ **MUST DO — dismiss every cookie banner / modal / overlay covering the page BEFORE you screenshot or extract styles.** This is the single most common failure of this skill. An overlay both skews computed styles and ruins the screenshot.
+
+Navigate to the URL:
 
 ```js
 await mcp__playwright__browser_navigate({ url: "<URL>" });
 ```
 
-Look at the snapshot for buttons like "Accept", "Accept all", "OK", "W porządku", "Zgadzam się", "Allow all". Click the first one you find:
+**Cookie/consent banners frequently load on a DELAY and are NOT present in the first snapshot.** (Real example: a banner appeared only several seconds after load and silently ended up in the screenshot.) So:
 
-```js
-await mcp__playwright__browser_click({ ref: "<ref>" });
-```
+1. Wait a moment, then snapshot, to let any delayed banner mount:
+   ```js
+   await mcp__playwright__browser_wait_for({ time: 3 });   // time is a NUMBER (seconds)
+   await mcp__playwright__browser_snapshot();
+   ```
+2. Scan the snapshot for a consent/modal dialog and its accept button. Common labels:
+   "Accept", "Accept all", "OK", "I agree", "Allow all", and Polish: "Akceptuj", "Akceptuj wszystkie", "Akceptuj wszystkie pliki cookies", "Zgadzam się", "W porządku", "Rozumiem". Click it (use `target` with the exact ref):
+   ```js
+   await mcp__playwright__browser_click({ element: "Accept cookies button", target: "<ref>" });
+   ```
+3. **Confirm it is gone** before continuing — wait for the banner text to disappear, then re-snapshot:
+   ```js
+   await mcp__playwright__browser_wait_for({ textGone: "<banner heading text>" });
+   ```
+4. Also dismiss any tooltip / onboarding / newsletter popups that appear after consent.
 
-Also dismiss any tooltip or onboarding popups that may appear after consent.
+If the snapshot is too large to return inline, save it to a file (`mcp__playwright__browser_snapshot({ filename: "snapshot.md" })`) and `grep` it for `cookie|consent|accept|zgadzam|akceptuj|dialog`.
 
 ### Step 3 — Take the homepage screenshot
 
+> 🛑 **STOP — re-check for overlays first (yes, again).** Before this screenshot, take one more snapshot and confirm NO cookie banner, modal, or popup is covering content. Banners load on a delay, so even if the page looked clean in Step 2 one may have appeared since. If anything is covering the page, dismiss it (Step 2) and only then screenshot.
+
 ```js
 await mcp__playwright__browser_take_screenshot({
-  filename: "assets/homepage.png"
+  filename: "assets/homepage.png",
+  fullPage: true
 });
 ```
+
+After saving, **open `assets/homepage.png` with the Read tool and visually verify** there is no banner/overlay strip across it. If there is, dismiss it and retake — do not move on with a polluted screenshot.
 
 ### Step 4 — Extract design tokens via evaluate (run in multiple small calls)
 
@@ -164,20 +183,45 @@ await mcp__playwright__browser_take_screenshot({
 Write({ file_path: "assets/logo.svg", content: `<svg ...>...</svg>` })
 ```
 
-**Favicon:** The favicon is a binary `.ico` file. On Windows use PowerShell, on Linux/macOS use curl:
+**Favicon + custom fonts (binary assets):** Download these with the in-page fetch helper, NOT with shell downloaders.
 
-```bash
-# Windows
-powershell -Command "Invoke-WebRequest -Uri '<faviconHref>' -OutFile 'assets/favicon.ico'"
+> ⚠️ **Do NOT use `curl`, `wget`, or `powershell Invoke-WebRequest` for downloads.** In sandboxed/permissioned environments these are routinely **denied** (observed first-hand: every shell-downloader attempt was blocked). The reliable, permission-safe path is to `fetch()` the asset **inside the page** (same-origin) and decode it locally with Node. The two helper scripts in this skill do exactly that — see **Step 5b**.
 
-# Linux/macOS
-curl -L -o assets/favicon.ico "<faviconHref>"
-```
+To grab just the favicon you can run the helper (it also handles fonts — see Step 5b) and keep `favicon.*` from its output.
 
-Note: PowerShell may print profile warnings — these are non-fatal. Verify the file exists after:
-```bash
-ls assets/favicon.ico
-```
+### Step 5b — Download custom/self-hosted fonts (only if the site provides them)
+
+**When to do this:** ONLY when the site serves its **own custom fonts** via self-hosted `@font-face` rules (font files on the site's origin, e.g. `…/themes/site/fonts/Brand-Regular.woff2`). Skip it when the site only uses:
+- generic system fonts (`Arial`, `-apple-system`, `Segoe UI`, …), or
+- a third-party CDN you can't fetch same-origin (e.g. `fonts.gstatic.com`, Adobe Typekit) — these are CORS-blocked and not "fonts provided by the website" to redistribute.
+
+If the `fontFaces` you collected in Step 4 / Call C point at real font files on the site's domain, download them:
+
+1. **Fetch all binary assets in-page** (fonts + favicon), writing the base64 to a FILE so it never floods context. Pass the contents of [`scripts/fetch-binary-assets.browser.js`](../scripts/fetch-binary-assets.browser.js) as the function:
+   ```js
+   await mcp__playwright__browser_evaluate({
+     function: "<paste contents of scripts/fetch-binary-assets.browser.js>",
+     filename: "binary-assets.json"   // REQUIRED — keeps the big result out of context
+   });
+   ```
+   The script **returns an object** `{ "fonts/<family>/<file>": "<base64>", "favicon.ico": "<base64>" }`.
+
+2. **Decode to real files** with the Node helper (run in the FOREGROUND so you see its output):
+   ```bash
+   node .agents/skills/create-design-system/scripts/decode-binary-assets.js <path-to>/binary-assets.json assets
+   ```
+   It writes `assets/fonts/<family>/*` and `assets/favicon.*`, then prints how many files it wrote.
+
+3. **Verify and clean up:**
+   ```bash
+   find assets/fonts -name '*.woff2' -o -name '*.ttf' -o -name '*.otf' -o -name '*.woff' | wc -l
+   ls -la assets/fonts/*/    # sizes should be tens–hundreds of KB, never 0 bytes
+   ```
+   Delete the temporary `binary-assets.json` when done.
+
+> 🧨 **Learn from this incident — read before writing your own decode loop.** The `browser_evaluate` `filename` sink **JSON-encodes the return value once**. If the in-page code returns a *string* (e.g. `JSON.stringify(obj)`), the file is **double-encoded** (a JSON string of JSON). A naive `JSON.parse(file)` then yields a *string*, and `Object.entries(string)` iterates **one entry per character** — a previous run wrote **~600,000 zero-byte files** named `0`,`1`,`2`,… into `assets/fonts/`. The provided helpers prevent this two ways: (a) `fetch-binary-assets.browser.js` returns an **object**, not a stringified string; (b) `decode-binary-assets.js` re-parses if it still sees a string AND **refuses to write** if there are >200 entries, numeric keys, or values too short to be a font. **Always prefer the helpers. If you must hand-roll, replicate those guards, and never run the decoder with `run_in_background`.**
+
+> 📜 **Tell the user about licensing (REQUIRED).** Custom fonts are usually licensed. In your final response to the user, include a clear note: *"The downloaded fonts (`<families>`) are the website's font assets — verify their license before using or redistributing them in our application."* Do not assume they are free to reuse.
 
 ### Step 6 — Build design-tokens.json
 
@@ -220,7 +264,7 @@ The guidelines document must include:
 
 1. **Assets table** — links to all saved files relative to `docs/`
 2. **Colors section** — token name, hex, usage
-3. **Typography section** — font family (with @font-face details), weight scale, size scale
+3. **Typography section** — font family (with @font-face details), weight scale, size scale. **If custom fonts were downloaded (Step 5b), list each downloaded file and its repo path under `assets/fonts/…`** so agents know the fonts exist locally and can be used in the app — and add a one-line note that their license must be verified before use.
 4. **Spacing section** — base unit and common values
 5. **Border radius section** — all radii with usage context
 6. **Components section** — header, nav, button, inputs, promo bar etc.
@@ -231,7 +275,10 @@ Save as `docs/design-guidelines.md`.
 
 ### Step 8 — Commit
 
+First delete any temporary files (e.g. `binary-assets.json`, snapshot dumps) and confirm no junk slipped into `assets/` (especially `assets/fonts/` — see the pitfalls table). Then:
+
 ```bash
+git status --short          # sanity-check: only the intended files
 git add assets/ docs/design-guidelines.md
 git commit -m "Docs: add <BrandName> design tokens and assets"
 ```
@@ -246,9 +293,11 @@ git commit -m "Docs: add <BrandName> design tokens and assets"
 | Logo selector returns country flag image | Use `header .logo` or `[class*="header"] [class*="logo"]` — the wordmark is usually an inline SVG, not `<img>` |
 | `browser_wait_for` error on `time` | The `time` param must be a number (integer ms), not a string |
 | `Write` tool error on `path` param | Use `file_path`, not `path` |
-| `curl` command denied by permissions | Use `powershell -Command "Invoke-WebRequest ..."` on Windows instead |
-| PowerShell prints profile warnings | These are non-fatal — verify the file exists with `ls` |
-| Cookie consent dialog never dismissed | Always check for and click "Accept all" / "OK" buttons before extracting styles — overlays produce incorrect computed styles |
+| `curl` / `wget` / `powershell Invoke-WebRequest` download **denied** | Don't shell out to download. `fetch()` the asset **in-page** (same-origin) and decode with Node — use `scripts/fetch-binary-assets.browser.js` + `scripts/decode-binary-assets.js` |
+| Cookie banner missed — ends up in the screenshot | It loads on a **delay** and is absent from the first snapshot. `browser_wait_for({time:3})` → snapshot → dismiss → confirm gone (`textGone`) → re-snapshot, THEN screenshot. Also visually Read the saved PNG to confirm it's clean. |
+| Cookie consent dialog never dismissed | Always check for and click "Accept all" / "OK" / "Akceptuj wszystkie" before extracting styles — overlays produce incorrect computed styles |
+| Decode created hundreds of thousands of 0-byte files | The `filename` sink double-encodes a *string* return. Return an **object** from the in-page script; the decoder must re-parse a string AND refuse >200 entries / numeric keys. Use the provided helpers; never `run_in_background` the decoder. |
+| Verifying only the subfolders you expected | After downloading fonts, check the **parent** dir too (`find assets/fonts -maxdepth 1 -type f | wc -l`). Junk files land at the top level and a subfolder-only `ls` hides them. |
 | Computed style returns `rgba(0, 0, 0, 0)` for bg | This means transparent — skip these when building color palettes |
 | Fonts show as `Arial` instead of brand font | Check `@font-face` rules in stylesheets — the brand font may load as a custom alias (e.g., `Euclid` = Euclid Circular B) |
 
@@ -260,10 +309,13 @@ All files are saved to the project root:
 
 ```
 assets/
-  homepage.png           # Full-page screenshot
+  homepage.png           # Full-page screenshot (no overlays!)
   logo.svg               # Brand wordmark (extracted from DOM)
   favicon.ico            # Favicon binary
   design-tokens.json     # Structured design tokens
+  fonts/                 # Self-hosted custom fonts (only if the site provides them)
+    <family>/            #   e.g. brygada-1918/, libre-franklin/
+      *.woff2 / *.ttf    #   downloaded font files
 docs/
   design-guidelines.md   # Human-readable design system reference
 ```

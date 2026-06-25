@@ -72,6 +72,7 @@ Use the templates below. Save to `docs/ADR/`.
 - **Testing is mandatory**: Every ADR must include a testing strategy. TDD is the primary self-validation tool for implementing agents.
 - **Context7 handles must be stored**: Any library referenced in the ADR must have its Context7 handle recorded so future agents can fetch docs without searching.
 - **Purpose**: This document, together with the PRD, must give a developer agent a complete, unambiguous picture of the system. If something is unclear, resolve it with the user before writing.
+- **Do NOT implement the code**: Focus on describing Architecture Decisions (ADRs) to provide all technical details for the agent that will implement the code.
 
 ---
 
