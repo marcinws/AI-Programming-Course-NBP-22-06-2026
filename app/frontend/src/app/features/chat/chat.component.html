@@ -115,34 +115,64 @@
   </div>
 
   <!-- ========================================================= -->
+  <!-- Session expired banner                                    -->
+  <!-- ========================================================= -->
+  @if (sessionExpired()) {
+    <div class="session-expired-banner" role="alert" data-testid="chat-session-expired">
+      <mat-icon class="expired-icon">warning</mat-icon>
+      <span class="expired-msg">Sesja wygasła. Twoja rozmowa nie jest już dostępna.</span>
+      <button
+        mat-flat-button
+        class="new-case-btn"
+        (click)="startNewCase()"
+        data-testid="chat-new-case-button"
+      >
+        Rozpocznij nową sprawę
+      </button>
+    </div>
+  }
+
+  <!-- ========================================================= -->
+  <!-- SSE streaming error banner                                -->
+  <!-- ========================================================= -->
+  @if (sseError() && !sessionExpired()) {
+    <div class="sse-error-banner" role="alert" data-testid="chat-sse-error">
+      <mat-icon class="error-icon">error_outline</mat-icon>
+      <span>{{ sseError() }}</span>
+    </div>
+  }
+
+  <!-- ========================================================= -->
   <!-- Composer                                                  -->
   <!-- ========================================================= -->
-  <div class="chat-composer">
-    <mat-form-field appearance="outline" class="composer-field">
-      <mat-label>Wpisz wiadomość</mat-label>
-      <textarea
-        matInput
-        [(ngModel)]="composerText"
-        [disabled]="isStreaming()"
-        rows="3"
-        placeholder="Ctrl+Enter aby wysłać..."
-        (keydown)="onComposerKeydown($event)"
-        data-testid="chat-composer-input"
-        aria-label="Pole wiadomości"
-      ></textarea>
-    </mat-form-field>
+  @if (!sessionExpired()) {
+    <div class="chat-composer">
+      <mat-form-field appearance="outline" class="composer-field">
+        <mat-label>Wpisz wiadomość</mat-label>
+        <textarea
+          matInput
+          [(ngModel)]="composerText"
+          [disabled]="isStreaming()"
+          rows="3"
+          placeholder="Ctrl+Enter aby wysłać..."
+          (keydown)="onComposerKeydown($event)"
+          data-testid="chat-composer-input"
+          aria-label="Pole wiadomości"
+        ></textarea>
+      </mat-form-field>
 
-    <button
-      mat-flat-button
-      class="send-btn"
-      [disabled]="isSendDisabled"
-      (click)="onSend()"
-      data-testid="chat-send-button"
-      aria-label="Wyślij wiadomość"
-    >
-      <mat-icon>send</mat-icon>
-      Wyślij
-    </button>
-  </div>
+      <button
+        mat-flat-button
+        class="send-btn"
+        [disabled]="isSendDisabled"
+        (click)="onSend()"
+        data-testid="chat-send-button"
+        aria-label="Wyślij wiadomość"
+      >
+        <mat-icon>send</mat-icon>
+        Wyślij
+      </button>
+    </div>
+  }
 
 </div>

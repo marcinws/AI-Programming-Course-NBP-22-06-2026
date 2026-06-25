@@ -1,14 +1,15 @@
 /**
- * ChatComponent — P3.F1 skeleton
+ * ChatComponent — P3.F1 skeleton + P4.F2 streaming turn
  *
  * Message bubbles (user/assistant), decision summary in mat-expansion-panel,
  * composer (textarea + send), typing indicator, Markdown via ngx-markdown.
- * Wired to AppStateService (signals) and CaseService (REST/SSE).
  *
- * The live send/streaming turn + navigation guard are implemented in P4.F2.
- * Here we build the skeleton + rendering + service, tested against mocks.
+ * P4.F2: onSend() → CaseService.sendMessage() → SSE handlers update AppStateService.
+ * Rehydrate-on-empty: on init, if messages are empty, calls getCase(id) to rehydrate.
+ * Session expired: 404 on rehydrate or SESSION_NOT_FOUND SSE error → sessionExpired.
+ * "Start new case": resets state + navigates to /.
  *
- * AC-18/19/25 · TAC-002-05/06/07
+ * AC-18/19/20/21/22/24/25 · TAC-002-04/05/06/07
  */
 
 import {
@@ -16,10 +17,12 @@ import {
   inject,
   computed,
   signal,
+  OnInit,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { HttpErrorResponse } from '@angular/common/http';
 
 // Angular Material
 import { MatCardModule } from '@angular/material/card';
@@ -59,13 +62,30 @@ import { DisplayMessage } from '../../core/models';
   templateUrl: './chat.component.html',
   styleUrl: './chat.component.scss',
 })
-export class ChatComponent {
+export class ChatComponent implements OnInit {
   protected readonly appState = inject(AppStateService);
   protected readonly caseService = inject(CaseService);
   protected readonly route = inject(ActivatedRoute);
+  protected readonly router = inject(Router);
 
   /** Composer textarea value — two-way bound via ngModel. */
   composerText = '';
+
+  // -------------------------------------------------------------------------
+  // P4.F2 signals
+  // -------------------------------------------------------------------------
+
+  /**
+   * Non-null when an SSE error or network error arrives during streaming.
+   * Cleared on the next send attempt.
+   */
+  readonly sseError = signal<string | null>(null);
+
+  /**
+   * True when a 404/SESSION_NOT_FOUND indicates the session has expired.
+   * Shows the "Sesja wygasła" UI with a "rozpocznij nową sprawę" action.
+   */
+  readonly sessionExpired = signal<boolean>(false);
 
   /**
    * Test seam: when set, overrides the messages from the store.
@@ -101,11 +121,101 @@ export class ChatComponent {
     );
   }
 
-  /** Send handler — full streaming implementation in P4.F2. */
+  // -------------------------------------------------------------------------
+  // Lifecycle
+  // -------------------------------------------------------------------------
+
+  ngOnInit(): void {
+    // Rehydrate from backend if the store is empty (e.g. page refresh)
+    const sessionId = this.route.snapshot.paramMap.get('sessionId') ?? '';
+    if (this.appState.messages().length === 0 && sessionId) {
+      this.caseService.getCase(sessionId).subscribe({
+        next: (session) => {
+          this.appState.hydrateFromSession(session);
+        },
+        error: (err: HttpErrorResponse) => {
+          if (err.status === 404) {
+            this.sessionExpired.set(true);
+          }
+        },
+      });
+    }
+  }
+
+  // -------------------------------------------------------------------------
+  // Send handler — P4.F2 streaming turn
+  // -------------------------------------------------------------------------
+
   onSend(): void {
     if (this.isSendDisabled) return;
-    // P4.F2: append user bubble, open SSE stream, grow assistant bubble, finalize.
-    console.info('[ChatComponent] onSend — P4.F2 pending');
+
+    const sessionId = this.appState.sessionId() ?? this.route.snapshot.paramMap.get('sessionId') ?? '';
+    const content = this.composerText.trim();
+
+    // Clear previous SSE error
+    this.sseError.set(null);
+
+    // 1. Append USER bubble
+    this.appState.appendMessage({
+      role: 'USER',
+      content,
+      createdAt: new Date().toISOString(),
+      isDecision: false,
+      isStreaming: false,
+    });
+
+    // 2. Append empty ASSISTANT streaming bubble
+    this.appState.appendMessage({
+      role: 'ASSISTANT',
+      content: '',
+      createdAt: new Date().toISOString(),
+      isDecision: false,
+      isStreaming: true,
+    });
+
+    // 3. Clear composer and enter STREAMING state
+    this.composerText = '';
+    this.appState.setPendingState('STREAMING');
+
+    // 4. Open SSE stream
+    this.caseService
+      .sendMessage(sessionId, content, {
+        onToken: (delta: string) => {
+          this.appState.updateLastMessage((msg) => ({
+            ...msg,
+            content: msg.content + delta,
+          }));
+        },
+        onDone: (message, updatedDecision) => {
+          // Finalize the streaming bubble with the canonical message content
+          this.appState.updateLastMessage((msg) => ({
+            ...msg,
+            content: message.content,
+            createdAt: message.createdAt,
+            isStreaming: false,
+          }));
+          if (updatedDecision) {
+            this.appState.setDecision(updatedDecision);
+          }
+          this.appState.setPendingState('IDLE');
+        },
+        onError: (code: string, message: string) => {
+          if (code === 'SESSION_NOT_FOUND') {
+            this.sessionExpired.set(true);
+          }
+          this.sseError.set(message);
+          this.appState.setPendingState('ERROR');
+        },
+      })
+      .catch((err: unknown) => {
+        // Network-level error (fetch threw)
+        const msg =
+          err instanceof Error
+            ? err.message
+            : 'Błąd połączenia. Spróbuj ponownie.';
+        this.sseError.set(msg);
+        this.appState.setPendingState('ERROR');
+      });
   }
 
   /** Keyboard: Ctrl+Enter / Cmd+Enter submits the composer. */
@@ -113,6 +223,15 @@ export class ChatComponent {
     if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
       this.onSend();
     }
+  }
+
+  // -------------------------------------------------------------------------
+  // "Rozpocznij nową sprawę" — reset state + navigate to form
+  // -------------------------------------------------------------------------
+
+  startNewCase(): void {
+    this.appState.reset();
+    this.router.navigate(['/']);
   }
 
   /** Outcome label in Polish. */
