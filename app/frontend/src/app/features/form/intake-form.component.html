@@ -15,7 +15,7 @@
         <!-- 1. Typ zgłoszenia (caseType) -->
         <mat-form-field appearance="outline" class="form-field">
           <mat-label>Typ zgłoszenia</mat-label>
-          <mat-select formControlName="caseType">
+          <mat-select formControlName="caseType" data-testid="form-case-type-select">
             @for (opt of caseTypeOptions(); track opt.id) {
               <mat-option [value]="opt.id">{{ opt.labelPl }}</mat-option>
             }
@@ -28,7 +28,7 @@
         <!-- 2. Kategoria sprzętu (equipmentCategory) -->
         <mat-form-field appearance="outline" class="form-field">
           <mat-label>Kategoria sprzętu</mat-label>
-          <mat-select formControlName="equipmentCategory">
+          <mat-select formControlName="equipmentCategory" data-testid="form-equipment-category-select">
             @for (opt of categoryOptions(); track opt.id) {
               <mat-option [value]="opt.id">{{ opt.labelPl }}</mat-option>
             }
@@ -41,7 +41,7 @@
         <!-- 3. Model / nazwa urządzenia (modelName) -->
         <mat-form-field appearance="outline" class="form-field">
           <mat-label>Model / nazwa urządzenia</mat-label>
-          <input matInput formControlName="modelName" placeholder="np. iPhone 15, ThinkPad X1" />
+          <input matInput formControlName="modelName" placeholder="np. iPhone 15, ThinkPad X1" data-testid="form-model-name-input" />
           @if (form.get('modelName')?.hasError('required') && form.get('modelName')?.touched) {
             <mat-error>Podaj model lub nazwę urządzenia.</mat-error>
           }
@@ -57,6 +57,7 @@
             formControlName="purchaseDate"
             placeholder="DD.MM.RRRR"
             readonly
+            data-testid="form-purchase-date-input"
           />
           <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
           <mat-datepicker #picker></mat-datepicker>
@@ -81,6 +82,7 @@
             formControlName="reason"
             rows="4"
             placeholder="Opisz przyczynę zgłoszenia..."
+            data-testid="form-reason-textarea"
           ></textarea>
           @if (form.get('reason')?.hasError('required') && form.get('reason')?.touched) {
             <mat-error>Podaj przyczynę reklamacji.</mat-error>
@@ -117,6 +119,7 @@
             accept="image/jpeg,image/png,image/webp"
             class="file-input-hidden"
             (change)="onFileInputChange($event)"
+            data-testid="form-file-input"
           />
 
           @if (fileError()) {
@@ -149,6 +152,7 @@
             type="submit"
             class="submit-btn"
             [disabled]="isSubmitDisabled"
+            data-testid="form-submit-button"
           >
             Wyślij zgłoszenie
           </button>

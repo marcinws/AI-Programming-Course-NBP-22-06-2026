@@ -1,0 +1,148 @@
+<!-- ChatComponent — P3.F1 | All user-facing text in Polish (AC-23) -->
+
+<div class="chat-page">
+
+  <!-- ========================================================= -->
+  <!-- Header toolbar                                            -->
+  <!-- ========================================================= -->
+  <div class="chat-header">
+    <span class="chat-header-title">Asystent sprzętowy NBP</span>
+
+    <!-- Decision outcome badge -->
+    @if (appState.decision(); as dec) {
+      <span class="decision-badge" [class]="'outcome-' + dec.outcome.toLowerCase()">
+        {{ decisionOutcomeLabel(dec.outcome) }}
+      </span>
+    }
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- Decision summary panel (mat-expansion-panel)              -->
+  <!-- ========================================================= -->
+  @if (appState.decision(); as dec) {
+    <mat-expansion-panel
+      class="decision-summary-panel"
+      data-testid="chat-decision-summary"
+    >
+      <mat-expansion-panel-header>
+        <mat-panel-title class="decision-panel-title">
+          Podsumowanie decyzji
+        </mat-panel-title>
+        <mat-panel-description class="decision-panel-desc">
+          {{ decisionOutcomeLabel(dec.outcome) }}
+        </mat-panel-description>
+      </mat-expansion-panel-header>
+
+      <div class="decision-summary-body">
+        <p class="decision-label">Uzasadnienie</p>
+        <p class="decision-value">{{ dec.justification }}</p>
+
+        <p class="decision-label">Kolejne kroki</p>
+        <p class="decision-value">{{ dec.nextSteps }}</p>
+      </div>
+    </mat-expansion-panel>
+  }
+
+  <!-- ========================================================= -->
+  <!-- Message list                                              -->
+  <!-- ========================================================= -->
+  <div class="chat-messages" data-testid="chat-messages">
+
+    @for (msg of effectiveMessages(); track msg.createdAt) {
+      <div
+        class="message-bubble"
+        [class.bubble-user]="msg.role === 'USER'"
+        [class.bubble-assistant]="msg.role !== 'USER'"
+        [class.bubble-decision]="msg.isDecision"
+        data-testid="chat-message-bubble"
+      >
+
+        <!-- First decision bubble: full Markdown with all sections -->
+        @if (msg.isDecision) {
+          <div class="decision-bubble" data-testid="chat-first-decision">
+            <markdown
+              [data]="msg.content"
+              [disableSanitizer]="false"
+            ></markdown>
+            <p class="decision-disclaimer">
+              <em>
+                Powyższa decyzja jest wstępna i może zostać zweryfikowana
+                przez uprawnionego pracownika. Prosimy o kontakt z działem wsparcia
+                w przypadku wątpliwości.
+              </em>
+            </p>
+          </div>
+        }
+
+        <!-- User bubble: plain text -->
+        @if (msg.role === 'USER') {
+          <div class="user-bubble-content">
+            <span class="bubble-role-label">Ty</span>
+            <p class="bubble-text">{{ msg.content }}</p>
+          </div>
+        }
+
+        <!-- Assistant non-decision bubble: Markdown -->
+        @if (msg.role !== 'USER' && !msg.isDecision) {
+          <div class="assistant-bubble-content">
+            <span class="bubble-role-label">Asystent</span>
+            <markdown
+              [data]="msg.content"
+              [disableSanitizer]="false"
+            ></markdown>
+          </div>
+        }
+
+        <span class="bubble-timestamp">
+          {{ msg.createdAt | date:'HH:mm' }}
+        </span>
+      </div>
+    }
+
+    <!-- Typing indicator (shown while streaming) -->
+    <div
+      class="typing-indicator"
+      data-testid="chat-typing-indicator"
+      [class.typing-indicator--visible]="isStreaming()"
+      aria-live="polite"
+      aria-label="Asystent pisze..."
+    >
+      <span class="dot"></span>
+      <span class="dot"></span>
+      <span class="dot"></span>
+    </div>
+
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- Composer                                                  -->
+  <!-- ========================================================= -->
+  <div class="chat-composer">
+    <mat-form-field appearance="outline" class="composer-field">
+      <mat-label>Wpisz wiadomość</mat-label>
+      <textarea
+        matInput
+        [(ngModel)]="composerText"
+        [disabled]="isStreaming()"
+        rows="3"
+        placeholder="Ctrl+Enter aby wysłać..."
+        (keydown)="onComposerKeydown($event)"
+        data-testid="chat-composer-input"
+        aria-label="Pole wiadomości"
+      ></textarea>
+    </mat-form-field>
+
+    <button
+      mat-flat-button
+      class="send-btn"
+      [disabled]="isSendDisabled"
+      (click)="onSend()"
+      data-testid="chat-send-button"
+      aria-label="Wyślij wiadomość"
+    >
+      <mat-icon>send</mat-icon>
+      Wyślij
+    </button>
+  </div>
+
+</div>

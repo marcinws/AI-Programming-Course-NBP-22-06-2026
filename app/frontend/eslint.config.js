@@ -47,6 +47,21 @@ module.exports = [
         'error',
         { type: 'element', prefix: 'app', style: 'kebab-case' },
       ],
+
+      // Allow unused parameters/variables in interface/type signatures and
+      // callbacks that start with _ (convention for intentionally unused args).
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          ignoreRestSiblings: true,
+          args: 'after-used',
+          caughtErrors: 'all',
+          caughtErrorsIgnorePattern: '^_',
+        },
+      ],
+      'no-unused-vars': 'off', // handled by @typescript-eslint/no-unused-vars
     },
   },
 
@@ -74,6 +89,19 @@ module.exports = [
       ...tsPlugin.configs['flat/recommended'].rules,
       // Disable rules that are too strict for test files
       '@typescript-eslint/no-explicit-any': 'warn',
+      // Allow intentionally unused params prefixed with _ in interface signatures
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          ignoreRestSiblings: true,
+          args: 'after-used',
+          caughtErrors: 'all',
+          caughtErrorsIgnorePattern: '^_',
+        },
+      ],
+      'no-unused-vars': 'off',
     },
   },
 
