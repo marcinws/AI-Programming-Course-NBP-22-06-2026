@@ -7,9 +7,18 @@
     "stub": "node stub/stub.mjs",
     "stub:start": "node stub/stub.mjs",
     "test:stub": "node --test stub/stub.spec.mjs",
-    "test": "node --test stub/stub.spec.mjs"
+    "test": "node --test stub/stub.spec.mjs",
+    "e2e": "playwright test",
+    "e2e:headed": "playwright test --headed",
+    "e2e:debug": "playwright test --debug",
+    "e2e:report": "playwright show-report",
+    "e2e:list": "playwright test --list",
+    "e2e:run": "node scripts/run-e2e.mjs"
   },
   "engines": {
     "node": ">=18.0.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.61.1"
   }
 }
