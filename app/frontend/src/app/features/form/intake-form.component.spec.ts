@@ -1,5 +1,5 @@
 /**
- * Spec: IntakeFormComponent — P2.F1
+ * Spec: IntakeFormComponent — P2.F1 + P4.F1
  *
  * Coverage:
  * - Selectors (caseType, equipmentCategory) populate from mocked CaseService.getMetadata()
@@ -8,18 +8,26 @@
  * - image file guard: type (GIF rejected), size (10 MB accepted, 11 MB rejected)
  * - all labels/messages in Polish
  * - submit button disabled while form is invalid
+ * P4.F1 additions:
+ * - 201 response: hydrateFromCreate + navigate to /chat/{sessionId}
+ * - 400 fieldErrors: shown under controls; inputs preserved
+ * - 502/LLM_UNAVAILABLE: retryable Polish error; form re-enabled
+ * - SUBMITTING state: form disabled + spinner shown (AC-25)
  *
- * TAC: TAC-002-01, TAC-002-02, TAC-002-03, TAC-002-06, TAC-002-07
+ * TAC: TAC-002-01..03, 04, 06, 07
  */
 
-import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
+import { ComponentFixture, TestBed, fakeAsync, tick, flush } from '@angular/core/testing';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { ReactiveFormsModule } from '@angular/forms';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
+import { Router } from '@angular/router';
+import { HttpErrorResponse } from '@angular/common/http';
 
 import { IntakeFormComponent } from './intake-form.component';
 import { CaseService } from '../../core/case.service';
-import { MetadataResponse } from '../../core/models';
+import { AppStateService } from '../../core/app-state';
+import { MetadataResponse, CreateCaseResponse } from '../../core/models';
 
 // ---------------------------------------------------------------------------
 // Mock metadata
@@ -53,20 +61,61 @@ function makeFile(name: string, type: string, sizeBytes: number): File {
 // Spec
 // ---------------------------------------------------------------------------
 
+// ---------------------------------------------------------------------------
+// Mock data for P4.F1
+// ---------------------------------------------------------------------------
+
+const MOCK_CREATE_RESPONSE: CreateCaseResponse = {
+  sessionId: 'sess-abc-123',
+  decision: {
+    outcome: 'APPROVE',
+    justification: 'Towar w gwarancji.',
+    nextSteps: 'Wyślij sprzęt do serwisu.',
+    firstMessageMarkdown: '## Decyzja\n**Zatwierdzona**',
+  },
+  imageAnalysisSummary: 'Zdjęcie zostało przeanalizowane.',
+};
+
+function makeValidFormValues() {
+  return {
+    caseType: 'RETURN' as const,
+    equipmentCategory: 'SMARTPHONE',
+    modelName: 'iPhone 15',
+    purchaseDate: new Date(),
+    reason: '',
+  };
+}
+
 describe('IntakeFormComponent', () => {
   let component: IntakeFormComponent;
   let fixture: ComponentFixture<IntakeFormComponent>;
   let caseServiceSpy: jasmine.SpyObj<CaseService>;
+  let appStateSpy: jasmine.SpyObj<AppStateService>;
+  let routerSpy: jasmine.SpyObj<Router>;
 
   beforeEach(async () => {
-    caseServiceSpy = jasmine.createSpyObj<CaseService>('CaseService', ['getMetadata']);
+    caseServiceSpy = jasmine.createSpyObj<CaseService>('CaseService', [
+      'getMetadata',
+      'createCase',
+    ]);
     caseServiceSpy.getMetadata.and.returnValue(of(MOCK_METADATA));
+
+    appStateSpy = jasmine.createSpyObj<AppStateService>('AppStateService', [
+      'hydrateFromCreate',
+      'setPendingState',
+      'reset',
+    ]);
+
+    routerSpy = jasmine.createSpyObj<Router>('Router', ['navigate']);
+    routerSpy.navigate.and.returnValue(Promise.resolve(true));
 
     await TestBed.configureTestingModule({
       imports: [IntakeFormComponent, ReactiveFormsModule],
       providers: [
         provideAnimations(),
         { provide: CaseService, useValue: caseServiceSpy },
+        { provide: AppStateService, useValue: appStateSpy },
+        { provide: Router, useValue: routerSpy },
       ],
     }).compileComponents();
 
@@ -319,5 +368,203 @@ describe('IntakeFormComponent', () => {
       expect(component.selectedFile()).toBeNull();
       expect(component.fileError()).toBeNull();
     });
+  });
+
+  // -------------------------------------------------------------------------
+  // 8. P4.F1 — Submit → createCase → navigate (201 success)
+  // -------------------------------------------------------------------------
+
+  describe('P4.F1 — submit success → navigate to chat (AC-07, TAC-002-04)', () => {
+    it('should call hydrateFromCreate and navigate to /chat/{sessionId} on 201', fakeAsync(() => {
+      caseServiceSpy.createCase.and.returnValue(of(MOCK_CREATE_RESPONSE));
+
+      component.form.patchValue(makeValidFormValues());
+      const validFile = makeFile('photo.jpg', 'image/jpeg', 1024);
+      component.onFileSelected(validFile);
+      tick();
+
+      component.onSubmit();
+      tick();
+
+      expect(caseServiceSpy.createCase).toHaveBeenCalledTimes(1);
+      expect(appStateSpy.hydrateFromCreate).toHaveBeenCalledWith(MOCK_CREATE_RESPONSE);
+      expect(routerSpy.navigate).toHaveBeenCalledWith(['/chat', 'sess-abc-123']);
+    }));
+
+    it('should set pendingState SUBMITTING before response arrives', fakeAsync(() => {
+      caseServiceSpy.createCase.and.returnValue(of(MOCK_CREATE_RESPONSE));
+
+      component.form.patchValue(makeValidFormValues());
+      component.onFileSelected(makeFile('photo.jpg', 'image/jpeg', 1024));
+      tick();
+
+      component.onSubmit();
+      // SUBMITTING must have been set during the call
+      expect(appStateSpy.setPendingState).toHaveBeenCalledWith('SUBMITTING');
+      tick();
+      flush();
+    }));
+  });
+
+  // -------------------------------------------------------------------------
+  // 9. P4.F1 — Submit → 400 fieldErrors (inputs preserved)
+  // -------------------------------------------------------------------------
+
+  describe('P4.F1 — submit 400 fieldErrors → controls show errors; inputs preserved (TAC-002-04)', () => {
+    it('should show fieldError under modelName control and keep the value', fakeAsync(() => {
+      const errorBody = {
+        code: 'VALIDATION_ERROR',
+        message: 'Błąd walidacji.',
+        fieldErrors: { modelName: 'Nieprawidłowy model.' },
+      };
+      caseServiceSpy.createCase.and.returnValue(
+        throwError(
+          () =>
+            new HttpErrorResponse({
+              status: 400,
+              error: errorBody,
+            }),
+        ),
+      );
+
+      component.form.patchValue({
+        ...makeValidFormValues(),
+        modelName: 'TestModel XYZ',
+      });
+      component.onFileSelected(makeFile('photo.jpg', 'image/jpeg', 1024));
+      tick();
+
+      component.onSubmit();
+      tick();
+
+      // The form value must be preserved (not wiped)
+      expect(component.form.get('modelName')!.value).toBe('TestModel XYZ');
+      // The control should have the server error set
+      expect(component.form.get('modelName')!.hasError('serverError')).toBeTrue();
+      // Form should be re-enabled after error
+      expect(component.form.enabled).toBeTrue();
+    }));
+
+    it('should show fieldError under equipmentCategory when returned', fakeAsync(() => {
+      const errorBody = {
+        code: 'VALIDATION_ERROR',
+        message: 'Błąd walidacji.',
+        fieldErrors: { equipmentCategory: 'Nieprawidłowa kategoria.' },
+      };
+      caseServiceSpy.createCase.and.returnValue(
+        throwError(
+          () =>
+            new HttpErrorResponse({
+              status: 400,
+              error: errorBody,
+            }),
+        ),
+      );
+
+      component.form.patchValue({ ...makeValidFormValues(), equipmentCategory: 'LAPTOP' });
+      component.onFileSelected(makeFile('photo.jpg', 'image/jpeg', 1024));
+      tick();
+
+      component.onSubmit();
+      tick();
+
+      expect(component.form.get('equipmentCategory')!.hasError('serverError')).toBeTrue();
+      expect(component.form.get('equipmentCategory')!.value).toBe('LAPTOP');
+    }));
+
+    it('should set pendingState to ERROR on fieldErrors response', fakeAsync(() => {
+      const errorBody = {
+        code: 'VALIDATION_ERROR',
+        message: 'Błąd.',
+        fieldErrors: { modelName: 'Zły model.' },
+      };
+      caseServiceSpy.createCase.and.returnValue(
+        throwError(
+          () => new HttpErrorResponse({ status: 400, error: errorBody }),
+        ),
+      );
+
+      component.form.patchValue(makeValidFormValues());
+      component.onFileSelected(makeFile('photo.jpg', 'image/jpeg', 1024));
+      tick();
+      component.onSubmit();
+      tick();
+
+      expect(appStateSpy.setPendingState).toHaveBeenCalledWith('ERROR');
+    }));
+  });
+
+  // -------------------------------------------------------------------------
+  // 10. P4.F1 — Submit → 502/LLM_UNAVAILABLE retryable error
+  // -------------------------------------------------------------------------
+
+  describe('P4.F1 — submit 502 LLM_UNAVAILABLE → retryable Polish error (TAC-002-04)', () => {
+    it('should expose a Polish retryable error message and re-enable the form', fakeAsync(() => {
+      const errorBody = {
+        code: 'LLM_UNAVAILABLE',
+        message: 'Usługa AI jest chwilowo niedostępna. Spróbuj ponownie.',
+      };
+      caseServiceSpy.createCase.and.returnValue(
+        throwError(
+          () => new HttpErrorResponse({ status: 502, error: errorBody }),
+        ),
+      );
+
+      component.form.patchValue(makeValidFormValues());
+      component.onFileSelected(makeFile('photo.jpg', 'image/jpeg', 1024));
+      tick();
+
+      component.onSubmit();
+      tick();
+
+      expect(component.submitError()).toBeTruthy();
+      expect(component.submitError()!.toLowerCase()).toContain('ponownie');
+      expect(component.form.enabled).toBeTrue();
+    }));
+
+    it('should re-enable the form after a 504 error', fakeAsync(() => {
+      caseServiceSpy.createCase.and.returnValue(
+        throwError(
+          () =>
+            new HttpErrorResponse({
+              status: 504,
+              error: { code: 'LLM_TIMEOUT', message: 'Timeout.' },
+            }),
+        ),
+      );
+
+      component.form.patchValue(makeValidFormValues());
+      component.onFileSelected(makeFile('photo.jpg', 'image/jpeg', 1024));
+      tick();
+      component.onSubmit();
+      tick();
+
+      expect(component.form.enabled).toBeTrue();
+      expect(component.submitError()).toBeTruthy();
+    }));
+  });
+
+  // -------------------------------------------------------------------------
+  // 11. P4.F1 — SUBMITTING state: spinner visible; double submit impossible (AC-25)
+  // -------------------------------------------------------------------------
+
+  describe('P4.F1 — SUBMITTING state guards (AC-25, TAC-002-06)', () => {
+    it('should not call createCase again when already submitting', fakeAsync(() => {
+      caseServiceSpy.createCase.and.returnValue(of(MOCK_CREATE_RESPONSE));
+
+      component.form.patchValue(makeValidFormValues());
+      component.onFileSelected(makeFile('photo.jpg', 'image/jpeg', 1024));
+      tick();
+
+      // Manually force SUBMITTING state to simulate in-flight request
+      component.isSubmitting.set(true);
+      component.onSubmit();
+
+      // createCase should NOT be called while already submitting
+      expect(caseServiceSpy.createCase).not.toHaveBeenCalled();
+
+      component.isSubmitting.set(false);
+      flush();
+    }));
   });
 });

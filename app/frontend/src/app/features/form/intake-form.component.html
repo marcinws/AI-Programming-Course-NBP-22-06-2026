@@ -145,6 +145,13 @@
           }
         </div>
 
+        <!-- Global submit error (5xx / retryable) -->
+        @if (submitError()) {
+          <p class="submit-error" role="alert" data-testid="form-submit-error">
+            {{ submitError() }}
+          </p>
+        }
+
         <!-- Submit -->
         <div class="submit-row">
           <button
@@ -154,7 +161,11 @@
             [disabled]="isSubmitDisabled"
             data-testid="form-submit-button"
           >
-            Wyślij zgłoszenie
+            @if (isSubmitting()) {
+              <mat-spinner diameter="20" class="btn-spinner"></mat-spinner>
+            } @else {
+              Wyślij zgłoszenie
+            }
           </button>
         </div>
 
