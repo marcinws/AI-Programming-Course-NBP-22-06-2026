@@ -1,0 +1,15 @@
+{
+  "name": "hw-copilot-e2e",
+  "version": "1.0.0",
+  "description": "E2E test suite and OpenAI-compatible stub server for Hardware Service Decision Copilot",
+  "type": "module",
+  "scripts": {
+    "stub": "node stub/stub.mjs",
+    "stub:start": "node stub/stub.mjs",
+    "test:stub": "node --test stub/stub.spec.mjs",
+    "test": "node --test stub/stub.spec.mjs"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
