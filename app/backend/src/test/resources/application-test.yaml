@@ -1,0 +1,21 @@
+# Konfiguracja profilu testowego — nadpisuje wartości dla testów jednostkowych i integracyjnych.
+# Klucze API i modele są celowo puste; testy integracyjne korzystają z MockWebServer.
+
+openrouter:
+  api-key: test-api-key
+  base-url: http://localhost:0
+  text-model: test-text-model
+  vision-model: test-vision-model
+
+app:
+  image:
+    max-upload-bytes: 10485760
+    max-dimension-px: 2048
+    target-format: jpeg
+  session:
+    ttl-minutes: 60
+  policy:
+    complaint-path: classpath:/policies/complaint-procedure.md
+    return-path: classpath:/policies/return-procedure.md
+  cors:
+    allowed-origin: http://localhost:4200

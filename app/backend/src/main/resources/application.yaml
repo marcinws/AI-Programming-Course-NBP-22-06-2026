@@ -1,0 +1,48 @@
+server:
+  port: 8080
+
+# ── OpenRouter / OpenAI Java SDK configuration (ADR-003, ADR-005 §6) ─────────
+# Klucz API: preferuj OPENAI_API_KEY; w braku użyj OPENROUTER_API_KEY
+openrouter:
+  api-key: ${OPENAI_API_KEY:${OPENROUTER_API_KEY:}}
+  base-url: ${OPENROUTER_BASE_URL:https://openrouter.ai/api/v1}
+  text-model: ${OPENROUTER_TEXT_MODEL:}
+  vision-model: ${OPENROUTER_VISION_MODEL:}
+  # Opcjonalne nagłówki rankingowe OpenRouter
+  http-referer: ${OPENROUTER_HTTP_REFERER:http://localhost:4200}
+  app-title: ${OPENROUTER_APP_TITLE:HW Service Copilot}
+
+# ── Konfiguracja aplikacji (ADR-000 §7) ──────────────────────────────────────
+app:
+  image:
+    max-upload-bytes: ${APP_IMAGE_MAX_UPLOAD_BYTES:10485760}
+    max-dimension-px: ${APP_IMAGE_MAX_DIMENSION_PX:2048}
+    target-format: ${APP_IMAGE_TARGET_FORMAT:jpeg}
+  session:
+    ttl-minutes: ${APP_SESSION_TTL_MINUTES:60}
+  policy:
+    complaint-path: ${APP_POLICY_COMPLAINT_PATH:classpath:/policies/complaint-procedure.md}
+    return-path: ${APP_POLICY_RETURN_PATH:classpath:/policies/return-procedure.md}
+  cors:
+    allowed-origin: ${APP_CORS_ALLOWED_ORIGIN:http://localhost:4200}
+
+# ── Timeouty żądań do OpenRouter ─────────────────────────────────────────────
+openai:
+  request-timeout-ms: ${OPENAI_REQUEST_TIMEOUT_MS:60000}
+
+# ── Multipart — zgodnie z app.image.max-upload-bytes ─────────────────────────
+spring:
+  servlet:
+    multipart:
+      max-file-size: ${APP_IMAGE_MAX_UPLOAD_BYTES:10485760}B
+      max-request-size: ${APP_IMAGE_MAX_UPLOAD_BYTES:10485760}B
+
+# ── Actuator — health endpoint (TAC-005-02) ───────────────────────────────────
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never
