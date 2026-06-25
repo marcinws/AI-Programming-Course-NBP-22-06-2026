@@ -5,12 +5,13 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import pl.nbp.copilot.integration.OpenRouterProperties;
+import pl.nbp.copilot.support.CorsProperties;
 import pl.nbp.copilot.support.ImageProperties;
 import pl.nbp.copilot.support.PolicyProperties;
 import pl.nbp.copilot.support.SessionProperties;
 
 @SpringBootApplication
-@EnableConfigurationProperties({ImageProperties.class, SessionProperties.class, PolicyProperties.class, OpenRouterProperties.class})
+@EnableConfigurationProperties({ImageProperties.class, SessionProperties.class, PolicyProperties.class, OpenRouterProperties.class, CorsProperties.class})
 @EnableScheduling
 public class HardwareServiceCopilotApplication {
 
