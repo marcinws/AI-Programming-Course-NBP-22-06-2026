@@ -23,6 +23,7 @@ import {
 import { CaseService } from './case.service';
 import {
   CreateCaseResponse,
+  MetadataResponse,
   SessionResponse,
   ErrorResponse,
   CaseFormValues,
@@ -121,6 +122,55 @@ describe('CaseService — REST (TAC-002-04)', () => {
 
   afterEach(() => {
     httpMock.verify();
+  });
+
+  // -------------------------------------------------------------------------
+  // getMetadata — success (TAC-002-04, ADR-002 §5)
+  // -------------------------------------------------------------------------
+
+  describe('getMetadata()', () => {
+    const MOCK_METADATA: MetadataResponse = {
+      caseTypes: [
+        { id: 'COMPLAINT', labelPl: 'Reklamacja' },
+        { id: 'RETURN', labelPl: 'Zwrot' },
+      ],
+      equipmentCategories: [
+        { id: 'SMARTPHONE', labelPl: 'Smartfon' },
+      ],
+      imageConstraints: {
+        acceptedTypes: ['image/jpeg', 'image/png', 'image/webp'],
+        maxBytes: 10_485_760,
+      },
+    };
+
+    it('should GET /api/metadata and return MetadataResponse on success', () => {
+      let result: MetadataResponse | undefined;
+
+      service.getMetadata().subscribe((res) => {
+        result = res;
+      });
+
+      const req = httpMock.expectOne('/api/metadata');
+      expect(req.request.method).toBe('GET');
+      req.flush(MOCK_METADATA, { status: 200, statusText: 'OK' });
+
+      expect(result).toEqual(MOCK_METADATA);
+      expect(result!.caseTypes.length).toBe(2);
+      expect(result!.imageConstraints.maxBytes).toBe(10_485_760);
+    });
+
+    it('should propagate error on 502 from getMetadata()', (done) => {
+      service.getMetadata().subscribe({
+        next: () => fail('Expected error, got success'),
+        error: (err) => {
+          expect(err).toBeTruthy();
+          done();
+        },
+      });
+
+      const req = httpMock.expectOne('/api/metadata');
+      req.flush({ code: 'LLM_UNAVAILABLE', message: 'AI unavailable.' }, { status: 502, statusText: 'Bad Gateway' });
+    });
   });
 
   // -------------------------------------------------------------------------
@@ -332,6 +382,29 @@ describe('CaseService — SSE sendMessage (TAC-002-05)', () => {
     });
 
     expect(capturedDecision).toEqual(updatedDecision);
+  });
+
+  it('should handle empty SSE stream (done arrives with no prior token events)', async () => {
+    // Edge case from ADR-002 §8: "empty stream handled"
+    let doneCalledWith: ChatMessage | undefined;
+    let tokenCount = 0;
+
+    mockSseEvents([
+      {
+        type: 'done',
+        message: { role: 'ASSISTANT', content: 'Odpowiedź bez tokenów.', createdAt: '2026-06-25T10:00:00Z' },
+      },
+    ]);
+
+    await service.sendMessage('sess-001', 'Pytanie', {
+      onToken: () => { tokenCount++; },
+      onDone: (msg) => { doneCalledWith = msg; },
+      onError: () => {},
+    });
+
+    expect(tokenCount).toBe(0);
+    expect(doneCalledWith).toBeDefined();
+    expect(doneCalledWith!.content).toBe('Odpowiedź bez tokenów.');
   });
 
   it('should POST to /api/cases/{id}/messages with JSON content body', async () => {

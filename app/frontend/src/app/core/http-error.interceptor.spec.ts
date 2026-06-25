@@ -123,4 +123,128 @@ describe('httpErrorInterceptor (TAC-002-04, TAC-002-07)', () => {
     const req = httpMock.expectOne('/api/test');
     req.flush(errorBody, { status: 400, statusText: 'Bad Request' });
   });
+
+  // TAC-002-07: all 6 ErrorCode values → non-empty Polish message
+  it('should surface a Polish snackbar message on 413 IMAGE_TOO_LARGE', (done) => {
+    const errorBody: ErrorResponse = {
+      code: 'IMAGE_TOO_LARGE',
+      message: 'Zdjęcie jest zbyt duże.',
+    };
+
+    http.get('/api/test').subscribe({
+      error: () => {
+        expect(SNACKBAR_SPY.open).toHaveBeenCalled();
+        const args = SNACKBAR_SPY.open.calls.mostRecent().args;
+        const message = args[0] as string;
+        // Should contain Polish text about size
+        expect(message.toLowerCase()).toContain('rozmiar');
+        done();
+      },
+    });
+
+    const req = httpMock.expectOne('/api/test');
+    req.flush(errorBody, { status: 413, statusText: 'Payload Too Large' });
+  });
+
+  it('should surface a Polish snackbar message on 415 UNSUPPORTED_MEDIA_TYPE', (done) => {
+    const errorBody: ErrorResponse = {
+      code: 'UNSUPPORTED_MEDIA_TYPE',
+      message: 'Niedozwolony format.',
+    };
+
+    http.get('/api/test').subscribe({
+      error: () => {
+        expect(SNACKBAR_SPY.open).toHaveBeenCalled();
+        const args = SNACKBAR_SPY.open.calls.mostRecent().args;
+        const message = args[0] as string;
+        // Should contain Polish text about format
+        expect(message.toLowerCase()).toContain('format');
+        done();
+      },
+    });
+
+    const req = httpMock.expectOne('/api/test');
+    req.flush(errorBody, { status: 415, statusText: 'Unsupported Media Type' });
+  });
+
+  it('should surface a Polish snackbar message on 504 LLM_TIMEOUT (retryable)', (done) => {
+    const errorBody: ErrorResponse = {
+      code: 'LLM_TIMEOUT',
+      message: 'Przekroczono limit czasu.',
+    };
+
+    http.get('/api/test').subscribe({
+      error: () => {
+        expect(SNACKBAR_SPY.open).toHaveBeenCalled();
+        const args = SNACKBAR_SPY.open.calls.mostRecent().args;
+        const message = args[0] as string;
+        expect(message.length).toBeGreaterThan(0);
+        // LLM_TIMEOUT is retryable — message should contain "ponownie"
+        expect(message.toLowerCase()).toContain('ponownie');
+        done();
+      },
+    });
+
+    const req = httpMock.expectOne('/api/test');
+    req.flush(errorBody, { status: 504, statusText: 'Gateway Timeout' });
+  });
+
+  it('should use a longer duration for retryable errors (LLM_UNAVAILABLE)', (done) => {
+    const errorBody: ErrorResponse = {
+      code: 'LLM_UNAVAILABLE',
+      message: 'AI niedostępne.',
+    };
+
+    http.get('/api/test').subscribe({
+      error: () => {
+        const args = SNACKBAR_SPY.open.calls.mostRecent().args;
+        const config = args[2] as { duration?: number };
+        // Retryable errors use longer duration (6000 ms) vs non-retryable (4000 ms)
+        expect(config.duration).toBeGreaterThan(4000);
+        done();
+      },
+    });
+
+    const req = httpMock.expectOne('/api/test');
+    req.flush(errorBody, { status: 502, statusText: 'Bad Gateway' });
+  });
+
+  it('should use default duration for non-retryable errors (VALIDATION_ERROR)', (done) => {
+    const errorBody: ErrorResponse = {
+      code: 'VALIDATION_ERROR',
+      message: 'Błąd walidacji.',
+    };
+
+    http.get('/api/test').subscribe({
+      error: () => {
+        const args = SNACKBAR_SPY.open.calls.mostRecent().args;
+        const config = args[2] as { duration?: number };
+        expect(config.duration).toBeLessThanOrEqual(4000);
+        done();
+      },
+    });
+
+    const req = httpMock.expectOne('/api/test');
+    req.flush(errorBody, { status: 400, statusText: 'Bad Request' });
+  });
+
+  it('should fall back to a Polish generic message for unknown error codes', (done) => {
+    const errorBody: ErrorResponse = {
+      code: 'UNKNOWN_CODE',
+      message: 'Nieznany błąd.',
+    };
+
+    http.get('/api/test').subscribe({
+      error: () => {
+        expect(SNACKBAR_SPY.open).toHaveBeenCalled();
+        const args = SNACKBAR_SPY.open.calls.mostRecent().args;
+        const message = args[0] as string;
+        expect(message.length).toBeGreaterThan(0);
+        done();
+      },
+    });
+
+    const req = httpMock.expectOne('/api/test');
+    req.flush(errorBody, { status: 500, statusText: 'Internal Server Error' });
+  });
 });

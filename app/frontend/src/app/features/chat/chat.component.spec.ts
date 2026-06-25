@@ -345,6 +345,71 @@ describe('ChatComponent (TAC-002-05, TAC-002-07)', () => {
     });
   });
 
+  // -------------------------------------------------------------------------
+  // 5b. First decision bubble — disclaimer text present (§8 row: "First bubble structure")
+  // -------------------------------------------------------------------------
+
+  describe('first decision bubble — disclaimer text (§8)', () => {
+    it('should render the Polish disclaimer text in the decision bubble', () => {
+      const decisionEl = fixture.nativeElement.querySelector('[data-testid="chat-first-decision"]');
+      expect(decisionEl).toBeTruthy();
+      // The disclaimer is always rendered beneath the Markdown in the decision bubble
+      const disclaimerText = (decisionEl.textContent as string).toLowerCase();
+      // "wstępna" or "zweryfikowana" must appear — comes from the disclaimer paragraph
+      expect(
+        disclaimerText.includes('wstępna') || disclaimerText.includes('zweryfikowana')
+      ).toBeTrue();
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // 5c. Decision summary panel — shows outcome, justification, next-steps (§8)
+  // -------------------------------------------------------------------------
+
+  describe('decision summary panel — content (§8)', () => {
+    it('should show the Polish outcome label in the summary panel', () => {
+      const panel = fixture.nativeElement.querySelector('[data-testid="chat-decision-summary"]');
+      expect(panel).toBeTruthy();
+      const text = (panel.textContent as string);
+      // decisionOutcomeLabel('APPROVE') === 'Zatwierdzona'
+      expect(text).toContain('Zatwierdzona');
+    });
+
+    it('should show "Podsumowanie decyzji" heading in the expansion panel', () => {
+      const panel = fixture.nativeElement.querySelector('[data-testid="chat-decision-summary"]');
+      expect((panel.textContent as string)).toContain('Podsumowanie decyzji');
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // 5d. Accessibility labels on composer elements (TAC-002-07)
+  // -------------------------------------------------------------------------
+
+  describe('accessibility labels (AC-23 / TAC-002-07)', () => {
+    it('should have aria-label on the composer textarea', () => {
+      const textarea = fixture.nativeElement.querySelector('[data-testid="chat-composer-input"]');
+      expect(textarea).toBeTruthy();
+      const ariaLabel = textarea.getAttribute('aria-label');
+      expect(ariaLabel).toBeTruthy();
+      // Must be Polish
+      expect((ariaLabel as string).length).toBeGreaterThan(0);
+    });
+
+    it('should have aria-label on the send button', () => {
+      const button = fixture.nativeElement.querySelector('[data-testid="chat-send-button"]');
+      expect(button).toBeTruthy();
+      const ariaLabel = button.getAttribute('aria-label');
+      expect(ariaLabel).toBeTruthy();
+      expect((ariaLabel as string).length).toBeGreaterThan(0);
+    });
+
+    it('should have aria-live attribute on the typing indicator', () => {
+      const indicator = fixture.nativeElement.querySelector('[data-testid="chat-typing-indicator"]');
+      expect(indicator).toBeTruthy();
+      expect(indicator.getAttribute('aria-live')).toBe('polite');
+    });
+  });
+
   // =========================================================================
   // P4.F2 — Streaming chat turn (TAC-002-04/05/06/07)
   // =========================================================================
@@ -601,6 +666,74 @@ describe('ChatComponent (TAC-002-05, TAC-002-07)', () => {
 
       expect(mockAppState.reset).toHaveBeenCalled();
       expect(routerSpy.navigate).toHaveBeenCalledWith(['/']);
+      flush();
+    }));
+  });
+
+  // -------------------------------------------------------------------------
+  // 11b. Duplicate send guard — onSend() is no-op while STREAMING (TAC-002-06)
+  // -------------------------------------------------------------------------
+
+  describe('P4.F2 — duplicate send prevention (TAC-002-06)', () => {
+    it('should not call sendMessage again when already STREAMING', fakeAsync(() => {
+      // First call sets STREAMING
+      mockCaseService.sendMessage.and.returnValue(new Promise(() => undefined));
+
+      component.composerText = 'Pierwsze pytanie';
+      component.onSend();
+      tick();
+
+      const callsAfterFirst = mockCaseService.sendMessage.calls.count();
+
+      // Second call while still streaming — should be ignored
+      component.composerText = 'Drugie pytanie';
+      component.onSend();
+      tick();
+
+      expect(mockCaseService.sendMessage.calls.count()).toBe(callsAfterFirst);
+      flush();
+    }));
+  });
+
+  // -------------------------------------------------------------------------
+  // 11c. "Sesja wygasła" banner and "Rozpocznij nową sprawę" button in DOM
+  // -------------------------------------------------------------------------
+
+  describe('P4.F2 — session expired UI elements (TAC-002-07)', () => {
+    it('should show data-testid="chat-session-expired" banner when sessionExpired is true', fakeAsync(() => {
+      component.sessionExpired.set(true);
+      fixture.detectChanges();
+
+      const banner = fixture.nativeElement.querySelector('[data-testid="chat-session-expired"]');
+      expect(banner).toBeTruthy();
+      flush();
+    }));
+
+    it('should show "Sesja wygasła" text in the expired banner', fakeAsync(() => {
+      component.sessionExpired.set(true);
+      fixture.detectChanges();
+
+      const banner = fixture.nativeElement.querySelector('[data-testid="chat-session-expired"]');
+      expect((banner.textContent as string).toLowerCase()).toContain('sesja wygasła');
+      flush();
+    }));
+
+    it('should show "Rozpocznij nową sprawę" button when sessionExpired is true', fakeAsync(() => {
+      component.sessionExpired.set(true);
+      fixture.detectChanges();
+
+      const btn = fixture.nativeElement.querySelector('[data-testid="chat-new-case-button"]');
+      expect(btn).toBeTruthy();
+      expect((btn.textContent as string).toLowerCase()).toContain('nową sprawę');
+      flush();
+    }));
+
+    it('should hide the composer when sessionExpired is true', fakeAsync(() => {
+      component.sessionExpired.set(true);
+      fixture.detectChanges();
+
+      const composer = fixture.nativeElement.querySelector('[data-testid="chat-composer-input"]');
+      expect(composer).toBeFalsy();
       flush();
     }));
   });
