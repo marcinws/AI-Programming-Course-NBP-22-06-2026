@@ -1,0 +1,110 @@
+{
+  "meta": {
+    "source": "https://nbp.pl",
+    "brand": "Narodowy Bank Polski (NBP)",
+    "extracted": "2026-06-24"
+  },
+  "colors": {
+    "brand": {
+      "primary": "#152E52",
+      "accent": "#4A74B0",
+      "gold": "#E8D499",
+      "error": "#C0392B",
+      "success": "#2E7D52"
+    },
+    "background": {
+      "default": "#FFFFFF",
+      "light": "#F7F7F7",
+      "dark": "#152E52",
+      "overlay": "rgba(21, 46, 82, 0.6)"
+    },
+    "border": {
+      "default": "#BFCEDD",
+      "muted": "#C4C4C4"
+    },
+    "text": {
+      "primary": "#464646",
+      "heading": "#152E52",
+      "link": "#4A74B0",
+      "muted": "#6B7280",
+      "onDark": "#FFFFFF"
+    }
+  },
+  "typography": {
+    "fontFamily": {
+      "heading": "\"Brygada 1918\", Georgia, \"Times New Roman\", serif",
+      "body": "\"Libre Franklin\", -apple-system, Arial, sans-serif"
+    },
+    "fontWeights": {
+      "regular": 400,
+      "medium": 500,
+      "semibold": 600,
+      "bold": 700
+    },
+    "fontSize": {
+      "sm": "13px",
+      "base": "15.5px",
+      "md": "16px",
+      "lg": "20px",
+      "xl": "24px",
+      "2xl": "32px",
+      "3xl": "44px"
+    },
+    "lineHeight": {
+      "tight": "1.2",
+      "base": "1.55",
+      "heading": "1.33"
+    }
+  },
+  "spacing": {
+    "1": "4px",
+    "2": "8px",
+    "3": "12px",
+    "4": "16px",
+    "5": "20px",
+    "6": "24px",
+    "8": "32px",
+    "10": "40px",
+    "12": "48px",
+    "16": "64px"
+  },
+  "borderRadius": {
+    "none": "0px",
+    "sm": "2px",
+    "md": "4px",
+    "lg": "6px",
+    "full": "999px",
+    "circle": "50%"
+  },
+  "components": {
+    "button": {
+      "primary": {
+        "backgroundColor": "#4A74B0",
+        "color": "#FFFFFF",
+        "padding": "8px 18px",
+        "borderRadius": "4px",
+        "fontWeight": 500,
+        "border": "1px solid #4A74B0"
+      },
+      "outline": {
+        "backgroundColor": "transparent",
+        "color": "#152E52",
+        "padding": "8px 18px",
+        "borderRadius": "4px",
+        "fontWeight": 500,
+        "border": "1px solid #BFCEDD"
+      }
+    },
+    "header": {
+      "backgroundColor": "#152E52",
+      "color": "#FFFFFF",
+      "padding": "0px"
+    },
+    "nav": {
+      "color": "#152E52",
+      "fontWeight": 500,
+      "textTransform": "uppercase",
+      "fontSize": "15.5px"
+    }
+  }
+}

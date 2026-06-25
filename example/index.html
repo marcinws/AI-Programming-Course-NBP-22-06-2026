@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>O mnie — szablon w stylu NBP</title>
+  <link rel="icon" href="assets/favicon.ico" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Brygada+1918:wght@400;500;600;700&family=Libre+Franklin:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      /* Kolory marki NBP */
+      --color-primary: #152E52;
+      --color-accent: #4A74B0;
+      --color-gold: #E8D499;
+      --bg-default: #FFFFFF;
+      --bg-light: #F7F7F7;
+      --bg-dark: #152E52;
+      --border: #BFCEDD;
+      --border-muted: #C4C4C4;
+      --text-primary: #464646;
+      --text-heading: #152E52;
+      --text-link: #4A74B0;
+      --text-muted: #6B7280;
+      --text-on-dark: #FFFFFF;
+
+      /* Typografia */
+      --font-heading: "Brygada 1918", Georgia, "Times New Roman", serif;
+      --font-body: "Libre Franklin", -apple-system, Arial, sans-serif;
+
+      /* Promienie */
+      --radius-sm: 2px;
+      --radius-md: 4px;
+      --radius-lg: 6px;
+
+      /* Cienie */
+      --shadow-card: 0 1px 3px rgba(21, 46, 82, 0.08), 0 4px 16px rgba(21, 46, 82, 0.06);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-body);
+      font-size: 15.5px;
+      line-height: 1.55;
+      color: var(--text-primary);
+      background: var(--bg-default);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a { color: var(--text-link); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    h1, h2, h3 { font-family: var(--font-heading); color: var(--text-heading); font-weight: 500; line-height: 1.33; }
+
+    .container { width: 100%; max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+
+    /* ===== Pasek górny ===== */
+    .topbar {
+      background: var(--bg-dark);
+      color: var(--text-on-dark);
+      font-size: 13px;
+    }
+    .topbar .container { display: flex; justify-content: flex-end; gap: 20px; padding-top: 8px; padding-bottom: 8px; }
+    .topbar a { color: rgba(255, 255, 255, 0.85); }
+    .topbar a:hover { color: #fff; }
+
+    /* ===== Nagłówek ===== */
+    .site-header {
+      background: var(--bg-default);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+    .site-header .container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 16px;
+      padding-bottom: 16px;
+    }
+    .logo img { display: block; height: 56px; width: auto; }
+    nav.main-nav ul { list-style: none; display: flex; gap: 28px; align-items: center; }
+    nav.main-nav a {
+      color: var(--color-primary);
+      font-weight: 500;
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+    }
+    nav.main-nav a:hover { color: var(--color-accent); text-decoration: none; }
+
+    /* ===== Przyciski ===== */
+    .btn {
+      display: inline-block;
+      font-family: var(--font-body);
+      font-weight: 500;
+      font-size: 14px;
+      padding: 10px 22px;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+      border: 1px solid transparent;
+    }
+    .btn-primary { background: var(--color-accent); color: #fff; border-color: var(--color-accent); }
+    .btn-primary:hover { background: #3c6398; border-color: #3c6398; text-decoration: none; }
+    .btn-outline { background: transparent; color: var(--color-primary); border-color: var(--border); }
+    .btn-outline:hover { background: var(--bg-light); text-decoration: none; }
+
+    /* ===== Hero ===== */
+    .hero {
+      background: linear-gradient(180deg, var(--bg-dark) 0%, #1c3a66 100%);
+      color: var(--text-on-dark);
+      padding: 72px 0;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::after {
+      content: "";
+      position: absolute;
+      right: -120px; top: -120px;
+      width: 360px; height: 360px;
+      background: var(--color-gold);
+      opacity: 0.12;
+      border-radius: 50%;
+    }
+    .hero .container { display: flex; align-items: center; gap: 56px; position: relative; z-index: 1; }
+    .hero-avatar {
+      flex-shrink: 0;
+      width: 200px; height: 200px;
+      border-radius: 50%;
+      background: var(--bg-light);
+      border: 4px solid var(--color-gold);
+      object-fit: cover;
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-heading);
+      font-size: 64px;
+      color: var(--color-primary);
+    }
+    .hero-text h1 { color: #fff; font-size: 44px; line-height: 1.1; margin-bottom: 12px; }
+    .hero-text .role { color: var(--color-gold); font-size: 19px; font-weight: 500; margin-bottom: 18px; }
+    .hero-text p { color: rgba(255, 255, 255, 0.88); max-width: 540px; margin-bottom: 26px; }
+    .hero-actions { display: flex; gap: 14px; flex-wrap: wrap; }
+    .hero-actions .btn-outline { color: #fff; border-color: rgba(255,255,255,0.4); }
+    .hero-actions .btn-outline:hover { background: rgba(255,255,255,0.1); }
+
+    /* ===== Sekcje ===== */
+    section.block { padding: 64px 0; }
+    section.block.alt { background: var(--bg-light); }
+    .section-head { margin-bottom: 36px; }
+    .section-head .eyebrow {
+      display: inline-block;
+      font-size: 13px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--color-accent);
+      margin-bottom: 8px;
+    }
+    .section-head h2 { font-size: 32px; }
+    .section-head .underline { width: 64px; height: 3px; background: var(--color-gold); margin-top: 14px; }
+
+    /* ===== O mnie ===== */
+    .about-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 40px; }
+    .about-grid p { margin-bottom: 16px; }
+    .facts { border-left: 3px solid var(--color-gold); padding-left: 20px; }
+    .facts dt { font-weight: 600; color: var(--color-primary); font-size: 13px; text-transform: uppercase; letter-spacing: 0.03em; margin-top: 16px; }
+    .facts dt:first-child { margin-top: 0; }
+    .facts dd { color: var(--text-primary); }
+
+    /* ===== Umiejętności ===== */
+    .skills { display: flex; flex-wrap: wrap; gap: 12px; }
+    .chip {
+      background: var(--bg-default);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 8px 16px;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--color-primary);
+    }
+
+    /* ===== Doświadczenie ===== */
+    .timeline { border-left: 2px solid var(--border); margin-left: 8px; }
+    .timeline-item { position: relative; padding: 0 0 32px 28px; }
+    .timeline-item:last-child { padding-bottom: 0; }
+    .timeline-item::before {
+      content: "";
+      position: absolute;
+      left: -8px; top: 4px;
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      background: var(--color-accent);
+      border: 3px solid #fff;
+      box-shadow: 0 0 0 1px var(--border);
+    }
+    .timeline-item .period { font-size: 13px; font-weight: 600; color: var(--color-accent); text-transform: uppercase; letter-spacing: 0.03em; }
+    .timeline-item h3 { font-size: 19px; margin: 4px 0 2px; }
+    .timeline-item .org { color: var(--text-muted); font-weight: 500; margin-bottom: 8px; }
+
+    /* ===== Karty ===== */
+    .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+    .card {
+      background: var(--bg-default);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 28px 24px;
+      box-shadow: var(--shadow-card);
+    }
+    .card .icon {
+      width: 44px; height: 44px;
+      border-radius: var(--radius-md);
+      background: rgba(74, 116, 176, 0.1);
+      color: var(--color-accent);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px; font-weight: 700;
+      margin-bottom: 16px;
+    }
+    .card h3 { font-size: 18px; margin-bottom: 8px; }
+    .card p { font-size: 14px; color: var(--text-muted); }
+
+    /* ===== Kontakt ===== */
+    .contact-box {
+      background: var(--bg-dark);
+      color: #fff;
+      border-radius: var(--radius-lg);
+      padding: 48px;
+      text-align: center;
+    }
+    .contact-box h2 { color: #fff; font-size: 30px; margin-bottom: 12px; }
+    .contact-box p { color: rgba(255,255,255,0.85); max-width: 480px; margin: 0 auto 26px; }
+    .contact-actions { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+    .contact-actions .btn-primary { background: var(--color-gold); color: var(--color-primary); border-color: var(--color-gold); }
+    .contact-actions .btn-primary:hover { background: #ddc77f; border-color: #ddc77f; }
+    .contact-actions .btn-outline { color: #fff; border-color: rgba(255,255,255,0.4); }
+    .contact-actions .btn-outline:hover { background: rgba(255,255,255,0.1); }
+
+    /* ===== Stopka ===== */
+    .site-footer { background: var(--bg-light); border-top: 1px solid var(--border); padding: 28px 0; }
+    .site-footer .container { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; font-size: 13px; color: var(--text-muted); }
+    .site-footer .socials { display: flex; gap: 18px; }
+
+    /* ===== RWD ===== */
+    @media (max-width: 860px) {
+      nav.main-nav { display: none; }
+      .hero .container { flex-direction: column; text-align: center; gap: 28px; }
+      .hero-text p { margin-left: auto; margin-right: auto; }
+      .hero-actions { justify-content: center; }
+      .hero-text h1 { font-size: 34px; }
+      .about-grid { grid-template-columns: 1fr; }
+      .cards { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Pasek górny -->
+  <div class="topbar">
+    <div class="container">
+      <a href="#">PL</a>
+      <a href="#">EN</a>
+      <a href="#kontakt">Kontakt</a>
+    </div>
+  </div>
+
+  <!-- Nagłówek -->
+  <header class="site-header">
+    <div class="container">
+      <a class="logo" href="#" aria-label="Strona główna">
+        <img src="assets/logo.svg" alt="Logotyp NBP" />
+      </a>
+      <nav class="main-nav" aria-label="Nawigacja główna">
+        <ul>
+          <li><a href="#o-mnie">O mnie</a></li>
+          <li><a href="#umiejetnosci">Umiejętności</a></li>
+          <li><a href="#doswiadczenie">Doświadczenie</a></li>
+          <li><a href="#projekty">Projekty</a></li>
+          <li><a href="#kontakt">Kontakt</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="container">
+      <div class="hero-avatar" aria-hidden="true">IN</div>
+      <div class="hero-text">
+        <h1>Imię Nazwisko</h1>
+        <div class="role">Stanowisko / Specjalizacja</div>
+        <p>Krótkie wprowadzenie w jednym lub dwóch zdaniach — kim jesteś, czym się zajmujesz i co Cię wyróżnia. Ten szablon utrzymany jest w identyfikacji wizualnej Narodowego Banku Polskiego.</p>
+        <div class="hero-actions">
+          <a href="#kontakt" class="btn btn-primary">Skontaktuj się</a>
+          <a href="#" class="btn btn-outline">Pobierz CV</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- O mnie -->
+  <section class="block" id="o-mnie">
+    <div class="container">
+      <div class="section-head">
+        <span class="eyebrow">Poznajmy się</span>
+        <h2>O mnie</h2>
+        <div class="underline"></div>
+      </div>
+      <div class="about-grid">
+        <div>
+          <p>Tutaj umieść dłuższy opis swojej osoby. Opowiedz o swojej drodze zawodowej, wartościach i podejściu do pracy. Postaraj się, aby tekst był konkretny i autentyczny — to pierwszy akapit, który czyta odwiedzający.</p>
+          <p>W drugim akapicie możesz rozwinąć swoje zainteresowania, obszary ekspertyzy oraz to, jakie problemy najchętniej rozwiązujesz. Pamiętaj o spójnym, formalnym tonie zgodnym z charakterem instytucji.</p>
+          <p>Trzeci akapit to dobre miejsce na osiągnięcia lub motywację — co napędza Cię w codziennej pracy i dokąd zmierzasz zawodowo.</p>
+        </div>
+        <dl class="facts">
+          <dt>Lokalizacja</dt>
+          <dd>Warszawa, Polska</dd>
+          <dt>Doświadczenie</dt>
+          <dd>X lat w branży</dd>
+          <dt>Wykształcenie</dt>
+          <dd>Kierunek, Uczelnia</dd>
+          <dt>Języki</dt>
+          <dd>Polski, Angielski</dd>
+        </dl>
+      </div>
+    </div>
+  </section>
+
+  <!-- Umiejętności -->
+  <section class="block alt" id="umiejetnosci">
+    <div class="container">
+      <div class="section-head">
+        <span class="eyebrow">Kompetencje</span>
+        <h2>Umiejętności</h2>
+        <div class="underline"></div>
+      </div>
+      <div class="skills">
+        <span class="chip">Analiza danych</span>
+        <span class="chip">Zarządzanie projektami</span>
+        <span class="chip">Komunikacja</span>
+        <span class="chip">Język angielski</span>
+        <span class="chip">Microsoft Excel</span>
+        <span class="chip">Prezentacje</span>
+        <span class="chip">Raportowanie</span>
+        <span class="chip">Praca zespołowa</span>
+        <span class="chip">Umiejętność dodawania kolejnych</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Doświadczenie -->
+  <section class="block" id="doswiadczenie">
+    <div class="container">
+      <div class="section-head">
+        <span class="eyebrow">Ścieżka zawodowa</span>
+        <h2>Doświadczenie</h2>
+        <div class="underline"></div>
+      </div>
+      <div class="timeline">
+        <div class="timeline-item">
+          <div class="period">2023 — obecnie</div>
+          <h3>Nazwa stanowiska</h3>
+          <div class="org">Nazwa organizacji</div>
+          <p>Krótki opis zakresu obowiązków oraz najważniejszych osiągnięć na tym stanowisku.</p>
+        </div>
+        <div class="timeline-item">
+          <div class="period">2020 — 2023</div>
+          <h3>Nazwa stanowiska</h3>
+          <div class="org">Nazwa organizacji</div>
+          <p>Krótki opis zakresu obowiązków oraz najważniejszych osiągnięć na tym stanowisku.</p>
+        </div>
+        <div class="timeline-item">
+          <div class="period">2018 — 2020</div>
+          <h3>Nazwa stanowiska</h3>
+          <div class="org">Nazwa organizacji</div>
+          <p>Krótki opis zakresu obowiązków oraz najważniejszych osiągnięć na tym stanowisku.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Projekty -->
+  <section class="block alt" id="projekty">
+    <div class="container">
+      <div class="section-head">
+        <span class="eyebrow">Wybrane prace</span>
+        <h2>Projekty</h2>
+        <div class="underline"></div>
+      </div>
+      <div class="cards">
+        <article class="card">
+          <div class="icon">01</div>
+          <h3>Nazwa projektu</h3>
+          <p>Krótki opis projektu, jego celu oraz Twojej roli i rezultatów, które udało się osiągnąć.</p>
+        </article>
+        <article class="card">
+          <div class="icon">02</div>
+          <h3>Nazwa projektu</h3>
+          <p>Krótki opis projektu, jego celu oraz Twojej roli i rezultatów, które udało się osiągnąć.</p>
+        </article>
+        <article class="card">
+          <div class="icon">03</div>
+          <h3>Nazwa projektu</h3>
+          <p>Krótki opis projektu, jego celu oraz Twojej roli i rezultatów, które udało się osiągnąć.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- Kontakt -->
+  <section class="block" id="kontakt">
+    <div class="container">
+      <div class="contact-box">
+        <h2>Porozmawiajmy</h2>
+        <p>Masz pytanie lub propozycję współpracy? Chętnie odpowiem na wiadomość i umówię się na rozmowę.</p>
+        <div class="contact-actions">
+          <a href="mailto:adres@email.pl" class="btn btn-primary">Napisz e-mail</a>
+          <a href="#" class="btn btn-outline">LinkedIn</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Stopka -->
+  <footer class="site-footer">
+    <div class="container">
+      <div>© 2026 Imię Nazwisko. Szablon w identyfikacji wizualnej NBP.</div>
+      <div class="socials">
+        <a href="#">LinkedIn</a>
+        <a href="#">GitHub</a>
+        <a href="#">E-mail</a>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>
