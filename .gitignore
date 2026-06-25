@@ -45,3 +45,6 @@ Thumbs.db
 # Claude Code local settings & instructions (committed as example, uncomment to ignore)
 # .claude/settings.local.json
 # CLAUDE.local.md
+
+# Claude Code worktrees (local, per-session)
+.claude/worktrees/

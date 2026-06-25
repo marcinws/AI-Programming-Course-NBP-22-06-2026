@@ -1,0 +1,1 @@
+- [Backend scaffold setup](project-backend-scaffold.md) — Spring Boot 3.5.1 scaffold at app/backend: exact dep versions, mvnw workaround for Git Bash, mockwebserver must be pinned to 4.12.0
