@@ -1,4 +1,4 @@
-# ADR-002: Frontend — Angular + PrimeNG SPA
+# ADR-002: Frontend — Angular + Angular Material SPA
 
 **Date:** 2026-06-24
 **Status:** Accepted
@@ -8,7 +8,7 @@
 
 ## 1. Scope
 
-Covers the Angular + PrimeNG single-page app: the two views (intake form, chat), client-side validation, REST communication, state handling, loading/error UX, and rendering of the formatted decision message. It does **not** cover the REST contract internals (ADR-001) or the AI behavior (ADR-003).
+Covers the Angular + Angular Material SPA: the two views (intake form, **streaming chat**), client-side validation, REST + SSE communication, state handling, loading/error UX, and rendering of streamed Markdown. It does **not** cover the REST/SSE contract internals (ADR-001), AI behavior (ADR-003), or project setup (ADR-005).
 
 ---
 
@@ -17,80 +17,89 @@ Covers the Angular + PrimeNG single-page app: the two views (intake form, chat),
 | Library | Context7 Handle | Used for |
 |---|---|---|
 | Angular | `/angular/angular` | Standalone components, signals, reactive forms, HttpClient, router |
-| PrimeNG | `/websites/v20_primeng` | Select, InputText, DatePicker, Textarea, FileUpload, Button, Message/Toast, ProgressSpinner, Card |
-| ngx-markdown | resolve `ngx-markdown` if adopted | Render the Markdown decision message (with sanitization) |
+| Angular Material | `/websites/material_angular_dev` | Form field, input, select, datepicker, button, card, list, toolbar, progress spinner/bar, snackbar |
+| ngx-markdown | resolve `ngx-markdown` if adopted | Render Markdown (decision + streamed replies) with sanitization |
+| @microsoft/fetch-event-source | resolve if adopted | Consume **POST**-based SSE streams (native `EventSource` is GET-only) |
 
 ---
 
 ## 3. Component Design
 
-Angular 20, **standalone components**, signal-based local state, lazy-loaded feature routes.
+Angular 20, **standalone components**, signal-based state, lazy-loaded routes.
 
 - **core/**
-  - `CaseService` — wraps `HttpClient`; methods: `getMetadata()`, `createCase(formData)` (multipart `FormData`), `sendMessage(sessionId, content)`, `getSession(sessionId)`. Returns typed models.
-  - `models` — TypeScript interfaces mirroring the REST DTOs (CaseType, EquipmentCategory, CreateCaseResponse, ChatResponse, SessionResponse, ErrorResponse).
-  - `http-error.interceptor` — maps `ErrorResponse.code` to a user-facing Polish message and a retryable flag; surfaces via a toast/message service.
-  - `app-state` (signal store service) — holds the active `sessionId`, the form snapshot (for the case-summary panel and retry), the decision, and the message list.
+  - `CaseService` — wraps `HttpClient` for `getMetadata()`, `createCase(formData)` (multipart), `getSession(id)`; and a **streaming** `sendMessage(id, content)` that opens the POST SSE stream and emits token deltas + a final result.
+  - `models` — TypeScript interfaces mirroring the REST DTOs and SSE event payloads.
+  - `http-error.interceptor` — maps `ErrorResponse.code` → Polish message + retryable flag; surfaces via `MatSnackBar`.
+  - `app-state` — signal store holding `sessionId`, form snapshot (for the case-summary panel + retry), decision, message list, and per-action `PendingState`.
 - **features/form/**
-  - `IntakeFormComponent` — PrimeNG-based reactive form; the `reason` validator toggles required based on `caseType`; date picker disables future dates; `FileUpload` restricted to accepted types/size with thumbnail preview and remove/replace. On submit: client validate → `createCase` → on success navigate to chat; on error show message and keep inputs.
+  - `IntakeFormComponent` — Angular Material reactive form: `mat-select` (case type, category), `matInput` (model name), `mat-datepicker` (purchase date, future disabled), `matInput` textarea (reason, required toggled by case type), a file picker (native input styled with a Material button + thumbnail preview; validated for type/size). On submit: validate → `createCase` → navigate to chat on success; on error show message + keep inputs.
 - **features/chat/**
-  - `ChatComponent` — renders the message list (first bubble = formatted decision via Markdown), a read-only/expandable case-summary panel, and a composer (textarea + send). Composer disabled while awaiting a reply; typing indicator shown. Appends user + assistant bubbles; if `updatedDecision` returns, shows it inline without removing history. "Start new case" resets state and routes to the form.
+  - `ChatComponent` — message list rendered with Material `mat-card`/`mat-list` bubbles; first bubble = decision Markdown; an expandable case-summary panel (`mat-expansion-panel`); a composer (`mat-form-field` textarea + `mat-icon-button` send). On send: append user bubble, open the SSE stream, append an assistant bubble that **grows token-by-token**, show a typing indicator, disable the composer until `done`. If `updatedDecision` arrives, render it inline without removing history. "Start new case" resets state → form.
 
-Routing: `/` → IntakeForm; `/chat/:sessionId` → Chat. A guard redirects to `/` if no active session is known and `getSession` 404s.
-
-State management: signals + a small store service (no NgRx) — appropriate for two views and a single session.
+Routing: `/` → IntakeForm; `/chat/:sessionId` → Chat (guard redirects to `/` if `getSession` 404s). State: signals + a small store service (no NgRx).
 
 ---
 
 ## 4. Data Structures
 
-Frontend models mirror ADR-001 DTOs exactly (same field names/enums) so the contract is single-sourced conceptually. Key client-only additions:
+Frontend models mirror ADR-001 DTOs (same names/enums). Client-only additions:
+- `PendingState`: `IDLE | SUBMITTING | STREAMING | ERROR`.
+- `DisplayMessage`: `{ role, content, createdAt, isDecision, isStreaming }` — `isStreaming` drives the live-growing bubble + typing indicator.
+- `SseEvent` union: `{ type: 'token', delta }` | `{ type: 'done', message, updatedDecision? }` | `{ type: 'error', code, message }`.
+- `FieldError` map surfaced beneath controls from `ErrorResponse.fieldErrors`.
 
-- `PendingState` enum per async action: `IDLE | SUBMITTING | AWAITING_REPLY | ERROR`.
-- `DisplayMessage`: { `role`, `content`, `createdAt`, `isDecision`: boolean } — `isDecision` selects Markdown rendering for the first bubble.
-- `FieldError` map surfaced beneath each control from `ErrorResponse.fieldErrors`.
-
-The uploaded image is held only as a `File`/preview object URL in the form component until submit; it is not stored after navigation.
+The uploaded image is held only as a `File` + preview object URL until submit; not stored after navigation.
 
 ---
 
 ## 5. Interface Contracts (consumed)
 
-`CaseService` consumes exactly the ADR-001 endpoints:
-- `GET /api/metadata` → populates case-type and category selectors and image constraints (so the UI never hard-codes lists that must match the backend).
-- `POST /api/cases` (multipart `FormData`) → on `201` store `sessionId`+decision, route to chat; on `400` map `fieldErrors` to controls; on `413/415` show file-specific message; on `502/504` show retryable error.
-- `POST /api/cases/{id}/messages` → append reply; handle `404` (session expired → offer new case) and `502/504` (inline retry).
+`CaseService` consumes the ADR-001 endpoints:
+- `GET /api/metadata` → populates selectors + image constraints (no hard-coded lists).
+- `POST /api/cases` (multipart) → `201`: store + route to chat; `400`: map `fieldErrors`; `413/415`: file message; `502/504`: retryable error.
+- `POST /api/cases/{id}/messages` (**SSE over POST**) → stream `token` events into the live bubble; on `done` finalize the message + any `updatedDecision`; on `error` SSE event or `404` (expired) show inline error / offer new case.
 - `GET /api/cases/{id}` → rehydrate chat on reload.
-
-Client request timeout is set generously (longer than `OPENAI_REQUEST_TIMEOUT_MS`) so the spinner covers the full backend orchestration.
 
 ---
 
 ## 6. Technical Decisions
 
-### Signals + service store (no NgRx)
+### Build the chat UI on Material primitives (no third-party chat library)
 **Status:** Accepted · **Date:** 2026-06-24
-**Context:** Only two views and one active session; global state is small.
-**Decision:** Use Angular signals in a lightweight store service for session/decision/messages; reactive forms for the intake form.
-**Rejected alternatives:** NgRx/global store — overkill for the MVP, adds boilerplate.
-**Consequences:** (+) Minimal, idiomatic Angular 20. (−) Would need revisiting if many cross-view states are added.
-**Review trigger:** Multi-session/tabbed cases or persisted client state.
+**Context:** The group mandated Angular Material. Research found Material has **no first-party chat component**; ready-made chat libraries (Stream Chat Angular, Syncfusion AI AssistView, Kendo Conversational UI, Nebular, CometChat) are third-party, mostly commercial/licensed, and not Material-native.
+**Decision:** Compose the chat from Material primitives (`mat-card`/`mat-list` bubbles, `mat-form-field` composer, `mat-progress-spinner`/typing indicator, `mat-expansion-panel` summary) + `ngx-markdown` for formatted content. Two simple views need no chat framework.
+**Rejected alternatives:**
+- Stream/Syncfusion/Kendo/CometChat: licensing + bundle weight + non-Material styling for an internal 2-screen MVP.
+- Nebular chat UI: pulls in the Nebular design system, conflicting with Angular Material.
+**Consequences:** (+) Pure Material, no license, full control of the streaming bubble. (−) We implement bubble layout/scroll/typing ourselves (small, well-understood).
+**Review trigger:** If chat needs threads, reactions, attachments, presence — reconsider a dedicated library.
+
+### Consume SSE over POST via a fetch-based stream (not native EventSource)
+**Status:** Accepted · **Date:** 2026-06-24
+**Context:** The chat reply is streamed; the request carries a body (`content`) so it is a **POST**. The browser's native `EventSource` only supports **GET** with no body.
+**Decision:** Consume the POST SSE stream using `@microsoft/fetch-event-source` (or an equivalent `fetch` + `ReadableStream` reader) inside `CaseService`, parsing `token`/`done`/`error` events and exposing them as an Angular signal/observable.
+**Rejected alternatives:**
+- Native `EventSource`: would force a GET endpoint and putting the message in the query string — awkward and size-limited.
+- WebSocket: bidirectional overhead unnecessary for one-way token push (consistent with ADR-001).
+**Consequences:** (+) Clean POST + body + streaming; cancelable on navigation. (−) One small extra dependency / a bit of manual SSE parsing.
+**Review trigger:** If the backend moves chat to a GET/WebSocket transport.
 
 ### Backend-driven form options via `/api/metadata`
 **Status:** Accepted · **Date:** 2026-06-24
-**Context:** Case types, equipment categories, and image constraints must match backend validation and prompt expectations (AC-01/02/08).
-**Decision:** Fetch options/constraints from `/api/metadata` at form load rather than hard-coding them in the SPA.
-**Rejected alternatives:** Hard-code lists client-side — risks drift from backend enums and prompts.
-**Consequences:** (+) Single source of truth on the backend. (−) One extra request at startup (cacheable).
+**Context:** Case types, categories, and image constraints must match backend validation/prompts (AC-01/02/08).
+**Decision:** Fetch options/constraints from `/api/metadata` at form load rather than hard-coding them.
+**Rejected alternatives:** Hard-code lists client-side (drift from backend enums/prompts).
+**Consequences:** (+) Single source of truth on the backend. (−) One extra startup request (cacheable).
 **Review trigger:** If options become user-configurable (admin UI is out of scope).
 
-### Markdown rendering for the decision bubble with sanitization
+### Markdown rendering with sanitization
 **Status:** Accepted · **Date:** 2026-06-24
-**Context:** AC-18/19 require a nicely formatted first message (greeting, decision, justification, next steps).
-**Decision:** Render the `firstMessageMarkdown` and assistant Markdown via ngx-markdown with sanitization enabled (Angular `DomSanitizer`/DOMPurify), since content originates from an LLM.
-**Rejected alternatives:** Render raw HTML from the model — XSS risk; plain text — fails the formatting AC.
-**Consequences:** (+) Readable, safe formatting. (−) Extra dependency; must keep sanitization on.
-**Review trigger:** If richer interactive content is needed in messages.
+**Context:** AC-18/19 require a formatted first message; streamed replies are Markdown from an LLM.
+**Decision:** Render Markdown via `ngx-markdown` with sanitization on (Angular `DomSanitizer`/DOMPurify); re-render the growing buffer as tokens arrive.
+**Rejected alternatives:** Raw HTML from the model (XSS); plain text (fails formatting AC).
+**Consequences:** (+) Readable, safe. (−) Extra dependency; sanitization must stay on; re-render throttling may be needed for very fast streams.
+**Review trigger:** Richer interactive message content.
 
 ---
 
@@ -105,9 +114,11 @@ flowchart TB
     Chat --> Store
     Form --> Svc[CaseService]
     Chat --> Svc
-    Svc --> Intc[HttpErrorInterceptor]
-    Intc --> Http[HttpClient]
+    Svc --> Intc[HttpErrorInterceptor + MatSnackBar]
+    Svc --> Http[HttpClient]
+    Svc --> SSE[fetch-event-source POST stream]
     Http -->|REST| API[(Spring backend /api)]
+    SSE -->|text/event-stream| API
     Chat --> MD[ngx-markdown render]
 ```
 
@@ -119,29 +130,27 @@ sequenceDiagram
     participant S as CaseService
     participant API as Backend
     participant R as Router
-    participant C as ChatComponent
-    U->>F: Fill form + photo, click Submit
-    F->>F: Reactive-form validation (reason-by-caseType, future-date, file type/size)
+    U->>F: Fill form + photo, Submit
+    F->>F: Reactive validation (reason-by-caseType, future-date, file type/size)
     alt invalid
         F-->>U: Field-level messages, no request
     else valid
-        F->>F: state = SUBMITTING (disable form, spinner)
+        F->>F: state=SUBMITTING (disable + spinner)
         F->>S: createCase(FormData)
         S->>API: POST /api/cases (multipart)
         alt 201
             API-->>S: { sessionId, decision }
             S-->>F: response
             F->>R: navigate /chat/{sessionId}
-            R->>C: load, render first decision bubble
         else 4xx/5xx
             API-->>S: ErrorResponse
-            S-->>F: mapped error (fieldErrors or retryable)
-            F-->>U: Show message, keep inputs
+            S-->>F: mapped error
+            F-->>U: message, keep inputs
         end
     end
 ```
 
-### Sequence — Chat turn
+### Sequence — Streaming chat turn
 ```mermaid
 sequenceDiagram
     participant U as Employee
@@ -149,16 +158,19 @@ sequenceDiagram
     participant S as CaseService
     participant API as Backend
     U->>C: Type message, send
-    C->>C: append user bubble; state = AWAITING_REPLY (disable composer, typing indicator)
-    C->>S: sendMessage(sessionId, content)
-    S->>API: POST /api/cases/{id}/messages
-    alt 200
-        API-->>C: { message, updatedDecision? }
-        C-->>U: append assistant bubble (+updated decision inline)
-    else 404
-        C-->>U: "Sesja wygasła" + start new case
-    else 502/504
-        C-->>U: inline error + retry (message preserved)
+    C->>C: append user bubble; state=STREAMING; add empty assistant bubble + typing indicator
+    C->>S: sendMessage(id, content)
+    S->>API: POST /api/cases/{id}/messages (SSE)
+    loop token events
+        API-->>S: event token { delta }
+        S-->>C: append delta to assistant bubble (re-render Markdown)
+    end
+    alt done
+        API-->>S: event done { message, updatedDecision? }
+        S-->>C: finalize bubble (+ updated decision inline); state=IDLE
+    else error / 404
+        API-->>S: event error / 404
+        S-->>C: inline error + retry (or "Sesja wygasła" + new case)
     end
 ```
 
@@ -170,23 +182,24 @@ sequenceDiagram
 
 | Scenario | Type | Input | Expected output | Edge cases |
 |---|---|---|---|---|
-| Reason required toggling | Unit | Switch caseType COMPLAINT/RETURN | `reason` control required only for COMPLAINT | Switching after typing keeps value |
-| Future date blocked | Unit | Pick tomorrow | Validation error; submit disabled | Today allowed |
-| File type/size guard | Unit | GIF / 11 MB file | Rejected client-side with message | Exactly 10 MB accepted |
-| Submit success → navigate | Unit | Valid form; CaseService mocked `201` | Router navigates to `/chat/{id}`; store has decision | — |
-| Submit field errors | Unit | CaseService mocked `400` fieldErrors | Errors shown under correct controls; inputs preserved | — |
-| Submit LLM error | Unit | CaseService mocked `502` | Retryable message; form re-enabled | — |
-| First bubble structure | Unit | Session with decision | Markdown rendered; greeting/decision/justification/next-steps present | Disclaimer text present |
-| Chat reply append | Unit | sendMessage mocked `200` | Assistant bubble appended; composer re-enabled | `updatedDecision` rendered inline |
-| Expired session in chat | Unit | sendMessage mocked `404` | "Sesja wygasła" + new-case action | — |
-| Metadata drives selectors | Unit | getMetadata mocked | Category/case-type options + constraints from response | Polish labels |
-| Full flow | E2E (Playwright) | Real stack, form→decision→1 chat turn | First bubble + successful reply asserted | Covered in ADR-000 TAC-10 |
+| Reason required toggling | Unit | switch caseType | `reason` required only for COMPLAINT | value kept on switch |
+| Future date blocked | Unit | pick tomorrow | validation error; submit disabled | today allowed |
+| File type/size guard | Unit | GIF / 11 MB | rejected client-side with message | exactly 10 MB accepted |
+| Submit success → navigate | Unit | mocked `201` | router → `/chat/{id}`; store has decision | — |
+| Submit field errors | Unit | mocked `400` fieldErrors | errors under correct controls; inputs preserved | — |
+| Submit LLM error | Unit | mocked `502` | retryable message; form re-enabled | — |
+| First bubble structure | Unit | session with decision | Markdown rendered; greeting/decision/justification/next-steps + disclaimer | — |
+| SSE token streaming | Unit | mocked token events | assistant bubble grows per delta; typing indicator while streaming | empty stream handled |
+| SSE done finalization | Unit | mocked `done` | bubble finalized; `updatedDecision` rendered inline; composer re-enabled | — |
+| SSE error / expired | Unit | mocked `error` / `404` | inline error / "Sesja wygasła" + new-case action | — |
+| Metadata drives selectors | Unit | mocked metadata | options + constraints from response; Polish labels | — |
+| Full flow | E2E (Playwright) | real stack | form → decision → streamed chat turn | ADR-000 TAC-11 |
 
 ### Technical acceptance criteria
-- **TAC-002-01:** The `reason` control is `required` when `caseType == COMPLAINT` and optional otherwise, verified by a form unit test reacting to caseType changes (AC-05).
-- **TAC-002-02:** The date picker rejects future dates and the submit button stays disabled while the form is invalid (AC-04/AC-25).
-- **TAC-002-03:** Files outside accepted types or over the constraint size are rejected client-side with a field message before any request (AC-06/08).
-- **TAC-002-04:** `CaseService` is tested with `HttpTestingController` (no real network) for all four endpoints including error branches.
-- **TAC-002-05:** The first chat bubble renders the decision Markdown with sanitization on; raw HTML in content is not executed (XSS guard test).
-- **TAC-002-06:** During `SUBMITTING`/`AWAITING_REPLY` the relevant controls are disabled and a loading/typing indicator is shown; duplicate submit is impossible (AC-25).
-- **TAC-002-07:** All visible labels and messages render in Polish (AC-23), verified on the form and chat components.
+- **TAC-002-01:** `reason` is required when `caseType == COMPLAINT`, optional otherwise (AC-05).
+- **TAC-002-02:** Date picker rejects future dates; submit disabled while invalid (AC-04/25).
+- **TAC-002-03:** Files outside accepted types/size rejected client-side before any request (AC-06/08).
+- **TAC-002-04:** `CaseService` REST methods tested with `HttpTestingController` (no real network), including error branches.
+- **TAC-002-05:** SSE consumption renders tokens incrementally and finalizes on `done`; sanitization is on (raw HTML in content is not executed).
+- **TAC-002-06:** During `SUBMITTING`/`STREAMING` the relevant controls are disabled and an indicator shown; duplicate submit/send impossible (AC-25).
+- **TAC-002-07:** All visible labels and messages render in Polish (AC-23).
