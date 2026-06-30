@@ -1,116 +1,157 @@
 import { type Page, type Locator } from '@playwright/test';
 
 /**
- * Page Object for the Intake Form (Formularz zgłoszenia).
+ * Page Object for the Intake Form — route "/".
  *
- * This is the landing page at route "/" where the user submits a hardware
- * service request before the AI decision flow starts.
+ * Selectors are derived from the confirmed data-testid attributes in
+ * app/frontend/src/app/features/form/intake-form.component.html (P6.1).
  *
- * SELECTOR STATUS: All locators are placeholders — real selectors will be
- * confirmed against the live DOM in P6.1 once the Angular template is
- * fully implemented. Prefer data-testid attributes and ARIA roles over
- * Angular-generated `_ngcontent-*` attributes (which change on every build).
- *
- * Routing: On successful submit the app navigates to /chat/:sessionId.
+ * mat-select interaction: Angular Material select does NOT use a native <select>
+ * element. To choose an option:
+ *   1. Click the mat-select trigger to open the overlay panel.
+ *   2. Click the desired mat-option inside the panel.
  */
 export class IntakeFormPage {
   readonly page: Page;
 
-  // ── Locators ────────────────────────────────────────────────────────────────
+  // ── Form field locators (matching confirmed data-testid attributes) ──────────
+
+  /** mat-select for Typ zgłoszenia (COMPLAINT / RETURN). */
+  readonly caseTypeSelect: Locator;
+
+  /** mat-select for Kategoria sprzętu. */
+  readonly equipmentCategorySelect: Locator;
+
+  /** Text input for Model / nazwa urządzenia. */
+  readonly modelNameInput: Locator;
+
+  /** Date input for Data zakupu (readonly — interacted via datepicker or direct value). */
+  readonly purchaseDateInput: Locator;
+
+  /** Textarea for Przyczyna zgłoszenia. */
+  readonly reasonTextarea: Locator;
 
   /**
-   * TODO (P6.1): Confirm selector once Angular template exposes the field.
-   * Expected: a labelled text area / input for the problem description.
-   * Prefer: page.getByLabel('Opis problemu') or page.getByTestId('field-description')
+   * Hidden file input (class="file-input-hidden").
+   * Use setInputFiles() directly — do NOT call click() (it is hidden).
    */
-  readonly descriptionField: Locator;
+  readonly fileInput: Locator;
 
-  /**
-   * TODO (P6.1): Confirm selector for hardware serial / asset identifier.
-   * Prefer: page.getByLabel('Numer seryjny') or page.getByTestId('field-serial')
-   */
-  readonly serialNumberField: Locator;
-
-  /**
-   * TODO (P6.1): Confirm selector for the photo / attachment upload input.
-   * Prefer: page.getByTestId('field-photo') or page.locator('input[type="file"]')
-   */
-  readonly photoUploadInput: Locator;
-
-  /**
-   * TODO (P6.1): Confirm the submit button role / label.
-   * Prefer: page.getByRole('button', { name: /wyślij|zatwierdź/i })
-   */
+  /** Primary submit button. */
   readonly submitButton: Locator;
 
-  /**
-   * TODO (P6.1): Confirm error message container selector.
-   * Prefer: page.getByRole('alert') or page.getByTestId('form-error')
-   */
-  readonly formError: Locator;
+  /** Global submit error paragraph (role=alert, 5xx/retryable). */
+  readonly submitError: Locator;
 
-  // ── Constructor ─────────────────────────────────────────────────────────────
+  // ── Constructor ──────────────────────────────────────────────────────────────
 
   constructor(page: Page) {
     this.page = page;
 
-    // Placeholder locators — replace with confirmed selectors in P6.1.
-    this.descriptionField = page.getByTestId('field-description');
-    this.serialNumberField = page.getByTestId('field-serial');
-    this.photoUploadInput  = page.locator('input[type="file"]');
-    this.submitButton      = page.getByRole('button', { name: /wyślij|zatwierdź|submit/i });
-    this.formError         = page.getByRole('alert');
+    this.caseTypeSelect          = page.getByTestId('form-case-type-select');
+    this.equipmentCategorySelect = page.getByTestId('form-equipment-category-select');
+    this.modelNameInput          = page.getByTestId('form-model-name-input');
+    this.purchaseDateInput       = page.getByTestId('form-purchase-date-input');
+    this.reasonTextarea          = page.getByTestId('form-reason-textarea');
+    this.fileInput               = page.getByTestId('form-file-input');
+    this.submitButton            = page.getByTestId('form-submit-button');
+    this.submitError             = page.getByTestId('form-submit-error');
   }
 
-  // ── Navigation ──────────────────────────────────────────────────────────────
+  // ── Navigation ───────────────────────────────────────────────────────────────
 
   /** Navigate to the intake form (root route). */
   async goto(): Promise<void> {
     await this.page.goto('/');
+    // Wait for the mat-select to be visible — confirms metadata loaded
+    await this.caseTypeSelect.waitFor({ state: 'visible' });
   }
 
-  // ── Actions ─────────────────────────────────────────────────────────────────
+  // ── mat-select helpers ───────────────────────────────────────────────────────
 
   /**
-   * Fill the problem description field.
-   * TODO (P6.1): verify the actual label / testid.
+   * Select a value from a Material mat-select.
+   *
+   * Angular Material renders the dropdown in a CDK overlay portal (outside the
+   * mat-select DOM). The overlay panel is identified by class ".mat-mdc-select-panel"
+   * or ".cdk-overlay-pane". We search for mat-option elements globally.
+   *
+   * @param selectLocator  The mat-select element (e.g. this.caseTypeSelect)
+   * @param optionText     Visible text of the option to select (case-insensitive substring match)
    */
-  async fillDescription(text: string): Promise<void> {
-    await this.descriptionField.fill(text);
+  async selectMatOption(selectLocator: Locator, optionText: string): Promise<void> {
+    await selectLocator.click();
+    // Options land in a CDK overlay portal — search the full page
+    const option = this.page
+      .locator('mat-option')
+      .filter({ hasText: optionText });
+    await option.first().waitFor({ state: 'visible' });
+    await option.first().click();
   }
 
-  /**
-   * Fill the serial number / asset identifier field.
-   * TODO (P6.1): verify the actual label / testid.
-   */
-  async fillSerialNumber(value: string): Promise<void> {
-    await this.serialNumberField.fill(value);
-  }
+  // ── Date picker helper ───────────────────────────────────────────────────────
 
   /**
-   * Upload a photo attachment.
-   * TODO (P6.1): verify the file input selector and upload mechanism.
+   * Set the purchase date by typing directly into the datepicker input.
+   * The field uses [matDatepicker] with placeholder "DD.MM.RRRR".
+   * We type the value and press Tab to commit.
+   *
+   * @param dateStr  Date string in DD.MM.YYYY format (e.g. "01.01.2023")
    */
-  async uploadPhoto(filePath: string): Promise<void> {
-    await this.photoUploadInput.setInputFiles(filePath);
+  async setPurchaseDate(dateStr: string): Promise<void> {
+    // The datepicker input is readonly in the template — click to focus, then clear & type
+    const input = this.purchaseDateInput;
+    await input.click();
+    await input.fill(dateStr);
+    await this.page.keyboard.press('Tab');
   }
 
+  // ── File upload ──────────────────────────────────────────────────────────────
+
   /**
-   * Submit the intake form.
-   * After a successful submit the app navigates to /chat/:sessionId.
-   * TODO (P6.1): add waitForURL('/chat/') after click if navigation is synchronous.
+   * Upload a file via the hidden file input.
+   * Use the absolute path to the file.
    */
+  async uploadFile(filePath: string): Promise<void> {
+    await this.fileInput.setInputFiles(filePath);
+  }
+
+  // ── Submit ───────────────────────────────────────────────────────────────────
+
   async submit(): Promise<void> {
     await this.submitButton.click();
   }
 
+  // ── Combined fill-and-submit ─────────────────────────────────────────────────
+
   /**
-   * Fill and submit the form in one step — convenience method for happy-path tests.
-   * TODO (P6.1): extend with all mandatory fields once the final template is known.
+   * Fill all mandatory form fields and submit.
+   *
+   * @param opts.caseType          Label text for case type (e.g. "Reklamacja")
+   * @param opts.equipmentCategory Label text for equipment category (e.g. "Laptop")
+   * @param opts.modelName         Device model string
+   * @param opts.purchaseDate      Date in DD.MM.YYYY format (must be in the past)
+   * @param opts.reason            Reason text (required for COMPLAINT)
+   * @param opts.filePath          Absolute path to the image fixture
    */
-  async fillAndSubmit(description: string, serialNumber: string): Promise<void> {
-    await this.fillDescription(description);
-    await this.fillSerialNumber(serialNumber);
+  async fillAndSubmit(opts: {
+    caseType?: string;
+    equipmentCategory: string;
+    modelName: string;
+    purchaseDate: string;
+    reason?: string;
+    filePath: string;
+  }): Promise<void> {
+    if (opts.caseType) {
+      await this.selectMatOption(this.caseTypeSelect, opts.caseType);
+    }
+    await this.selectMatOption(this.equipmentCategorySelect, opts.equipmentCategory);
+    await this.modelNameInput.fill(opts.modelName);
+    await this.setPurchaseDate(opts.purchaseDate);
+    if (opts.reason) {
+      await this.reasonTextarea.fill(opts.reason);
+    }
+    await this.uploadFile(opts.filePath);
     await this.submit();
   }
 }

@@ -1,129 +1,151 @@
-import { type Page, type Locator } from '@playwright/test';
+import { type Page, type Locator, expect } from '@playwright/test';
 
 /**
- * Page Object for the Chat / Decision view (Widok czatu).
+ * Page Object for the Chat / Decision view — route "/chat/:sessionId".
  *
- * This page is reached at route "/chat/:sessionId" after the intake form is
- * submitted. It displays:
- *   - An AI-generated decision bubble (APPROVE / REJECT / ESCALATE) with
- *     justification streamed from the backend.
- *   - A chat input for follow-up questions to the AI.
+ * Selectors are derived from the confirmed data-testid attributes in
+ * app/frontend/src/app/features/chat/chat.component.html (P6.1).
  *
- * SELECTOR STATUS: All locators are placeholders — real selectors will be
- * confirmed against the live DOM in P6.1 once the Angular template is
- * fully implemented. Prefer data-testid attributes and ARIA roles.
+ * Key data-testid attributes:
+ *   chat-messages           — scrollable message list container
+ *   chat-message-bubble     — individual message bubble (multiple)
+ *   chat-first-decision     — the first decision bubble (contains Markdown)
+ *   chat-decision-summary   — mat-expansion-panel with justification / next-steps
+ *   chat-typing-indicator   — dot animation shown while streaming
+ *   chat-composer-input     — textarea for follow-up messages
+ *   chat-send-button        — send button
+ *   chat-session-expired    — session-expired banner
+ *   chat-sse-error          — SSE error banner
+ *   chat-new-case-button    — "Rozpocznij nową sprawę" button
  */
 export class ChatPage {
   readonly page: Page;
 
-  // ── Locators ────────────────────────────────────────────────────────────────
+  // ── Locators ─────────────────────────────────────────────────────────────────
+
+  /** Scrollable message list container. */
+  readonly messages: Locator;
+
+  /** All message bubbles (first is the decision bubble). */
+  readonly messageBubbles: Locator;
 
   /**
-   * The decision outcome badge / heading (e.g. "ZATWIERDZONE", "ODRZUCONO",
-   * "ESKALACJA").
-   * TODO (P6.1): confirm selector — likely getByTestId('decision-outcome')
-   * or getByRole('heading', { name: /zatwierdz|odrzuc|eskalac/i })
+   * The first decision bubble rendered as Markdown.
+   * Contains greeting, decision badge, justification, next-steps, and disclaimer.
    */
-  readonly decisionOutcome: Locator;
+  readonly firstDecision: Locator;
+
+  /** The decision summary expansion panel (shows outcome + justification). */
+  readonly decisionSummary: Locator;
 
   /**
-   * Container that holds the full decision justification text streamed from
-   * the LLM.
-   * TODO (P6.1): confirm selector — likely getByTestId('decision-justification')
+   * Typing indicator — visible (.typing-indicator--visible) while streaming.
+   * Always present in the DOM; visibility driven by the CSS class.
    */
-  readonly decisionJustification: Locator;
+  readonly typingIndicator: Locator;
 
-  /**
-   * The chat message list / transcript area.
-   * TODO (P6.1): confirm selector — likely getByRole('log') or
-   * getByTestId('chat-messages')
-   */
-  readonly chatMessages: Locator;
+  /** Composer textarea. */
+  readonly composerInput: Locator;
 
-  /**
-   * The text input for follow-up questions.
-   * TODO (P6.1): confirm selector — likely getByRole('textbox', { name: /pytanie|wiadomość/i })
-   * or getByTestId('chat-input')
-   */
-  readonly chatInput: Locator;
-
-  /**
-   * The send / submit button for chat messages.
-   * TODO (P6.1): confirm selector — likely getByRole('button', { name: /wyślij|send/i })
-   * or getByTestId('chat-send')
-   */
+  /** Send button. */
   readonly sendButton: Locator;
 
-  /**
-   * Streaming indicator shown while the AI response is being received.
-   * TODO (P6.1): confirm selector — likely getByTestId('streaming-indicator')
-   * or getByRole('status')
-   */
-  readonly streamingIndicator: Locator;
+  /** Session-expired banner. */
+  readonly sessionExpiredBanner: Locator;
 
-  // ── Constructor ─────────────────────────────────────────────────────────────
+  /** SSE error banner. */
+  readonly sseErrorBanner: Locator;
+
+  /** "Rozpocznij nową sprawę" button inside the expired banner. */
+  readonly newCaseButton: Locator;
+
+  // ── Constructor ──────────────────────────────────────────────────────────────
 
   constructor(page: Page) {
     this.page = page;
 
-    // Placeholder locators — replace with confirmed selectors in P6.1.
-    this.decisionOutcome       = page.getByTestId('decision-outcome');
-    this.decisionJustification = page.getByTestId('decision-justification');
-    this.chatMessages          = page.getByTestId('chat-messages');
-    this.chatInput             = page.getByRole('textbox', { name: /pytanie|wiadomość|message/i });
-    this.sendButton            = page.getByRole('button', { name: /wyślij|send/i });
-    this.streamingIndicator    = page.getByTestId('streaming-indicator');
+    this.messages            = page.getByTestId('chat-messages');
+    this.messageBubbles      = page.getByTestId('chat-message-bubble');
+    this.firstDecision       = page.getByTestId('chat-first-decision').first();
+    this.decisionSummary     = page.getByTestId('chat-decision-summary');
+    this.typingIndicator     = page.getByTestId('chat-typing-indicator');
+    this.composerInput       = page.getByTestId('chat-composer-input');
+    this.sendButton          = page.getByTestId('chat-send-button');
+    this.sessionExpiredBanner = page.getByTestId('chat-session-expired');
+    this.sseErrorBanner      = page.getByTestId('chat-sse-error');
+    this.newCaseButton       = page.getByTestId('chat-new-case-button');
   }
 
-  // ── Navigation ──────────────────────────────────────────────────────────────
+  // ── Navigation ───────────────────────────────────────────────────────────────
 
-  /**
-   * Navigate directly to a chat session by ID.
-   * Normally the app navigates here after form submission — use this only in
-   * tests that need to deep-link into an existing session.
-   */
+  /** Navigate directly to a chat session by ID (deep-link). */
   async goto(sessionId: string): Promise<void> {
     await this.page.goto(`/chat/${sessionId}`);
   }
 
-  /**
-   * Wait until the chat page is fully loaded (URL matches /chat/).
-   * TODO (P6.1): also wait for the decision bubble to be visible.
-   */
-  async waitForLoad(): Promise<void> {
-    await this.page.waitForURL(/\/chat\//);
+  // ── Wait helpers ─────────────────────────────────────────────────────────────
+
+  /** Wait until the URL matches /chat/ — called after form submit. */
+  async waitForNavigation(): Promise<void> {
+    await this.page.waitForURL(/\/chat\//, { timeout: 30_000 });
   }
 
-  // ── Actions ─────────────────────────────────────────────────────────────────
-
   /**
-   * Wait for the streamed AI decision to appear (streaming indicator gone,
-   * decision outcome visible).
-   * TODO (P6.1): tune timeouts based on observed LLM stub latency.
+   * Wait for the first decision bubble to appear and contain content.
+   * The stub streams a JSON decision which the backend formats as Markdown.
+   * Timeout is generous to allow backend processing + SSE streaming.
    */
   async waitForDecision(): Promise<void> {
-    // Wait for the streaming indicator to disappear first (if present).
-    // TODO (P6.1): uncomment once the indicator is implemented.
-    // await this.streamingIndicator.waitFor({ state: 'hidden' });
-    await this.decisionOutcome.waitFor({ state: 'visible' });
+    // First decision bubble must appear
+    await this.firstDecision.waitFor({ state: 'visible', timeout: 60_000 });
+    // The bubble must contain non-trivial text (not just whitespace)
+    await expect(this.firstDecision).not.toBeEmpty({ timeout: 60_000 });
   }
 
   /**
-   * Type a follow-up question and submit it.
-   * TODO (P6.1): verify behaviour — does pressing Enter submit, or is the
-   * button required?
+   * Assert that the decision bubble contains the mandatory sections:
+   * disclaimer text that the decision is advisory.
    */
+  async assertDecisionHasDisclaimer(): Promise<void> {
+    // The disclaimer paragraph is hardcoded in the template
+    await expect(this.firstDecision).toContainText(
+      'Powyższa decyzja jest wstępna',
+      { timeout: 30_000 },
+    );
+  }
+
+  /**
+   * Wait for the typing indicator to appear (streaming started).
+   * The indicator uses class .typing-indicator--visible when active.
+   */
+  async waitForTypingIndicator(): Promise<void> {
+    await expect(this.typingIndicator).toHaveClass(/typing-indicator--visible/, {
+      timeout: 15_000,
+    });
+  }
+
+  /**
+   * Wait for streaming to finish: typing indicator gone AND at least one
+   * new assistant bubble has appeared after the user message.
+   *
+   * @param minBubbleCount  Minimum number of total message bubbles expected
+   */
+  async waitForStreamingComplete(minBubbleCount: number): Promise<void> {
+    // Typing indicator class removed when streaming ends
+    await expect(this.typingIndicator).not.toHaveClass(/typing-indicator--visible/, {
+      timeout: 60_000,
+    });
+    // At least the expected number of bubbles visible
+    await expect(this.messageBubbles).toHaveCount(minBubbleCount, {
+      timeout: 60_000,
+    });
+  }
+
+  // ── Actions ──────────────────────────────────────────────────────────────────
+
+  /** Type and send a chat message. */
   async sendMessage(text: string): Promise<void> {
-    await this.chatInput.fill(text);
+    await this.composerInput.fill(text);
     await this.sendButton.click();
-  }
-
-  /**
-   * Wait for the assistant's reply to the last user message to appear.
-   * TODO (P6.1): refine — count messages before/after to detect a new reply.
-   */
-  async waitForAssistantReply(): Promise<void> {
-    // Placeholder: wait for at least one message in the transcript.
-    await this.chatMessages.waitFor({ state: 'visible' });
   }
 }
