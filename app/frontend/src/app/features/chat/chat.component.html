@@ -48,7 +48,7 @@
   <!-- ========================================================= -->
   <div class="chat-messages" data-testid="chat-messages">
 
-    @for (msg of effectiveMessages(); track msg.createdAt) {
+    @for (msg of effectiveMessages(); track msg.createdAt; let i = $index) {
       <div
         class="message-bubble"
         [class.bubble-user]="msg.role === 'USER'"
@@ -58,8 +58,12 @@
       >
 
         <!-- First decision bubble: full Markdown with all sections -->
+        <!-- Subsequent isDecision bubbles (AC-21 updated decisions) get chat-updated-decision -->
         @if (msg.isDecision) {
-          <div class="decision-bubble" data-testid="chat-first-decision">
+          <div
+            class="decision-bubble"
+            [attr.data-testid]="i === 0 ? 'chat-first-decision' : 'chat-updated-decision'"
+          >
             <markdown
               [data]="msg.content"
               [disableSanitizer]="false"

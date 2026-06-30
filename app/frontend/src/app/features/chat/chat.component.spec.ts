@@ -603,6 +603,174 @@ describe('ChatComponent (TAC-002-05, TAC-002-07)', () => {
       expect(component.isSendDisabled).toBeFalse();
       flush();
     }));
+
+    // -----------------------------------------------------------------------
+    // AC-21: updatedDecision with firstMessageMarkdown → new inline bubble
+    // -----------------------------------------------------------------------
+
+    it('AC-21: should append a new isDecision assistant bubble when updatedDecision has firstMessageMarkdown', fakeAsync(() => {
+      const UPDATED_MARKDOWN = '## Zmieniona decyzja\n\n**Decyzja:** Odrzucono\n\n**Uzasadnienie:** Towar poza gwarancją.';
+      const updatedDecision: Decision = {
+        outcome: 'REJECT',
+        justification: 'Towar poza gwarancją.',
+        nextSteps: 'Skontaktuj się z serwisem.',
+        firstMessageMarkdown: UPDATED_MARKDOWN,
+      };
+
+      let capturedHandlers: Parameters<typeof mockCaseService.sendMessage>[2] | undefined;
+
+      mockCaseService.sendMessage.and.callFake(
+        (_id: string, _content: string, handlers: Parameters<typeof mockCaseService.sendMessage>[2]) => {
+          capturedHandlers = handlers;
+          return Promise.resolve();
+        },
+      );
+
+      component.composerText = 'Pytanie o decyzję';
+      component.onSend();
+      tick();
+
+      const messagesBeforeDone = mockAppState.messages().length;
+
+      capturedHandlers!.onDone(MOCK_CHAT_MESSAGE, updatedDecision);
+      tick();
+
+      const messagesAfterDone = mockAppState.messages();
+
+      // A new bubble must be appended after the finalized streaming bubble
+      expect(messagesAfterDone.length).toBe(messagesBeforeDone + 1);
+
+      // The newly appended bubble must be the last one
+      const newBubble = messagesAfterDone[messagesAfterDone.length - 1];
+      expect(newBubble.role).toBe('ASSISTANT');
+      expect(newBubble.isDecision).toBeTrue();
+      expect(newBubble.isStreaming).toBeFalse();
+      expect(newBubble.content).toBe(UPDATED_MARKDOWN);
+      flush();
+    }));
+
+    it('AC-21: should also call setDecision when updatedDecision has firstMessageMarkdown', fakeAsync(() => {
+      const updatedDecision: Decision = {
+        outcome: 'ESCALATE',
+        justification: 'Wymaga eskalacji.',
+        nextSteps: 'Skontaktuj się z przełożonym.',
+        firstMessageMarkdown: '## Eskalacja\n\nDecyzja wymaga eskalacji.',
+      };
+
+      let capturedHandlers: Parameters<typeof mockCaseService.sendMessage>[2] | undefined;
+
+      mockCaseService.sendMessage.and.callFake(
+        (_id: string, _content: string, handlers: Parameters<typeof mockCaseService.sendMessage>[2]) => {
+          capturedHandlers = handlers;
+          return Promise.resolve();
+        },
+      );
+
+      component.composerText = 'Pytanie';
+      component.onSend();
+      tick();
+
+      capturedHandlers!.onDone(MOCK_CHAT_MESSAGE, updatedDecision);
+      tick();
+
+      expect(mockAppState.setDecision).toHaveBeenCalledWith(updatedDecision);
+      flush();
+    }));
+
+    it('AC-21: should preserve all prior messages when updatedDecision bubble is appended', fakeAsync(() => {
+      const UPDATED_MARKDOWN = '## Nowa decyzja\n\nZmieniona treść.';
+      const updatedDecision: Decision = {
+        outcome: 'APPROVE',
+        justification: 'Zmiana decyzji po analizie.',
+        nextSteps: 'Brak dalszych kroków.',
+        firstMessageMarkdown: UPDATED_MARKDOWN,
+      };
+
+      let capturedHandlers: Parameters<typeof mockCaseService.sendMessage>[2] | undefined;
+
+      mockCaseService.sendMessage.and.callFake(
+        (_id: string, _content: string, handlers: Parameters<typeof mockCaseService.sendMessage>[2]) => {
+          capturedHandlers = handlers;
+          return Promise.resolve();
+        },
+      );
+
+      component.composerText = 'Pytanie';
+      component.onSend();
+      tick();
+
+      // Capture snapshot of messages that existed before done (excludes the streaming bubble)
+      const messagesBeforeSend = [...MOCK_MESSAGES];
+
+      capturedHandlers!.onDone(MOCK_CHAT_MESSAGE, updatedDecision);
+      tick();
+
+      const finalMessages = mockAppState.messages();
+
+      // All original MOCK_MESSAGES must still be present (history preserved)
+      messagesBeforeSend.forEach((original) => {
+        const found = finalMessages.some(
+          (m: DisplayMessage) => m.content === original.content && m.role === original.role,
+        );
+        expect(found).toBeTrue();
+      });
+      flush();
+    }));
+
+    it('AC-21: should NOT append a decision bubble when updatedDecision is null', fakeAsync(() => {
+      let capturedHandlers: Parameters<typeof mockCaseService.sendMessage>[2] | undefined;
+
+      mockCaseService.sendMessage.and.callFake(
+        (_id: string, _content: string, handlers: Parameters<typeof mockCaseService.sendMessage>[2]) => {
+          capturedHandlers = handlers;
+          return Promise.resolve();
+        },
+      );
+
+      component.composerText = 'Pytanie';
+      component.onSend();
+      tick();
+
+      const messagesBeforeDone = mockAppState.messages().length;
+
+      capturedHandlers!.onDone(MOCK_CHAT_MESSAGE, undefined);
+      tick();
+
+      // No extra bubble should be appended (count stays the same as before done)
+      expect(mockAppState.messages().length).toBe(messagesBeforeDone);
+      flush();
+    }));
+
+    it('AC-21: should NOT append a decision bubble when updatedDecision has no firstMessageMarkdown', fakeAsync(() => {
+      const updatedDecision: Decision = {
+        outcome: 'REJECT',
+        justification: 'Towar poza gwarancją.',
+        nextSteps: 'Skontaktuj się z serwisem.',
+        // no firstMessageMarkdown
+      };
+
+      let capturedHandlers: Parameters<typeof mockCaseService.sendMessage>[2] | undefined;
+
+      mockCaseService.sendMessage.and.callFake(
+        (_id: string, _content: string, handlers: Parameters<typeof mockCaseService.sendMessage>[2]) => {
+          capturedHandlers = handlers;
+          return Promise.resolve();
+        },
+      );
+
+      component.composerText = 'Pytanie';
+      component.onSend();
+      tick();
+
+      const messagesBeforeDone = mockAppState.messages().length;
+
+      capturedHandlers!.onDone(MOCK_CHAT_MESSAGE, updatedDecision);
+      tick();
+
+      // No extra decision bubble — count unchanged from before done
+      expect(mockAppState.messages().length).toBe(messagesBeforeDone);
+      flush();
+    }));
   });
 
   // -------------------------------------------------------------------------

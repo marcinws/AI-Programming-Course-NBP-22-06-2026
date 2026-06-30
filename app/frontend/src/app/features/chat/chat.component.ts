@@ -196,6 +196,17 @@ export class ChatComponent implements OnInit {
           }));
           if (updatedDecision) {
             this.appState.setDecision(updatedDecision);
+            // AC-21: when the updated decision carries Markdown, append an inline
+            // decision bubble so the change is visible in the conversation thread.
+            if (updatedDecision.firstMessageMarkdown) {
+              this.appState.appendMessage({
+                role: 'ASSISTANT',
+                content: updatedDecision.firstMessageMarkdown,
+                createdAt: message.createdAt,
+                isDecision: true,
+                isStreaming: false,
+              });
+            }
           }
           this.appState.setPendingState('IDLE');
         },
