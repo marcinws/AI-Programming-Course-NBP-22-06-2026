@@ -1,0 +1,360 @@
+// ChatComponent styles — NBP design tokens applied
+// Tokens: example/assets/design-tokens.json + example/design-guidelines.md
+
+// ---------------------------------------------------------------------------
+// NBP token variables (same as intake-form)
+// ---------------------------------------------------------------------------
+$nbp-primary:      #152E52;
+$nbp-accent:       #4A74B0;
+$nbp-gold:         #E8D499;
+$nbp-bg-light:     #F7F7F7;
+$nbp-border:       #BFCEDD;
+$nbp-text:         #464646;
+$nbp-text-muted:   #6B7280;
+$nbp-error:        #C0392B;
+
+// Typography
+$font-heading:     'Brygada 1918', Georgia, 'Times New Roman', serif;
+$font-body:        'Libre Franklin', -apple-system, Arial, sans-serif;
+
+// Spacing
+$sp-2:  8px;
+$sp-3: 12px;
+$sp-4: 16px;
+$sp-5: 20px;
+$sp-6: 24px;
+$sp-8: 32px;
+
+// Radius
+$r-md: 4px;
+$r-lg: 6px;
+$r-bubble: 16px;
+
+// ---------------------------------------------------------------------------
+// Page layout — full-height flex column
+// ---------------------------------------------------------------------------
+.chat-page {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background-color: $nbp-bg-light;
+  font-family: $font-body;
+  color: $nbp-text;
+}
+
+// ---------------------------------------------------------------------------
+// Header
+// ---------------------------------------------------------------------------
+.chat-header {
+  display: flex;
+  align-items: center;
+  gap: $sp-4;
+  background-color: $nbp-primary;
+  padding: $sp-4 $sp-6;
+  flex-shrink: 0;
+}
+
+.chat-header-title {
+  color: #ffffff;
+  font-family: $font-heading;
+  font-size: 18px;
+  font-weight: 600;
+  flex: 1;
+}
+
+.decision-badge {
+  font-family: $font-body;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px $sp-3;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+
+  &.outcome-approve {
+    background-color: #e6f4ea;
+    color: #1b5e20;
+  }
+
+  &.outcome-reject {
+    background-color: #fce8e6;
+    color: #b31412;
+  }
+
+  &.outcome-escalate {
+    background-color: #fff3e0;
+    color: #e65100;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Decision summary expansion panel
+// ---------------------------------------------------------------------------
+.decision-summary-panel {
+  margin: $sp-3 $sp-4 0;
+  border: 1px solid $nbp-border;
+  border-radius: $r-lg;
+  flex-shrink: 0;
+}
+
+.decision-panel-title {
+  font-family: $font-body;
+  font-weight: 600;
+  color: $nbp-primary;
+}
+
+.decision-panel-desc {
+  font-family: $font-body;
+  font-size: 13px;
+  color: $nbp-text-muted;
+}
+
+.decision-summary-body {
+  padding: $sp-2 0;
+}
+
+.decision-label {
+  font-family: $font-body;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: $nbp-text-muted;
+  margin: $sp-3 0 4px;
+}
+
+.decision-value {
+  font-family: $font-body;
+  font-size: 14px;
+  color: $nbp-text;
+  margin: 0 0 $sp-3;
+  line-height: 1.55;
+}
+
+// ---------------------------------------------------------------------------
+// Message list
+// ---------------------------------------------------------------------------
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: $sp-4 $sp-6;
+  display: flex;
+  flex-direction: column;
+  gap: $sp-4;
+}
+
+// ---------------------------------------------------------------------------
+// Message bubbles
+// ---------------------------------------------------------------------------
+.message-bubble {
+  display: flex;
+  flex-direction: column;
+  max-width: 80%;
+
+  &.bubble-user {
+    align-self: flex-end;
+    align-items: flex-end;
+  }
+
+  &.bubble-assistant {
+    align-self: flex-start;
+    align-items: flex-start;
+  }
+
+  &.bubble-decision {
+    max-width: 100%;
+    align-self: stretch;
+  }
+}
+
+.bubble-timestamp {
+  font-size: 11px;
+  color: $nbp-text-muted;
+  margin-top: 4px;
+}
+
+// ---------------------------------------------------------------------------
+// User bubble
+// ---------------------------------------------------------------------------
+.user-bubble-content {
+  background-color: $nbp-accent;
+  color: #ffffff;
+  padding: $sp-3 $sp-4;
+  border-radius: $r-bubble $r-bubble 0 $r-bubble;
+
+  .bubble-role-label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    opacity: 0.82;
+    margin-bottom: 4px;
+  }
+
+  .bubble-text {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.55;
+    white-space: pre-wrap;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Assistant bubble
+// ---------------------------------------------------------------------------
+.assistant-bubble-content {
+  background-color: #ffffff;
+  border: 1px solid $nbp-border;
+  padding: $sp-3 $sp-4;
+  border-radius: 0 $r-bubble $r-bubble $r-bubble;
+  box-shadow: 0 1px 3px rgba(21, 46, 82, 0.06);
+
+  .bubble-role-label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: $nbp-accent;
+    margin-bottom: 4px;
+  }
+
+  // Markdown content styling inside assistant bubble
+  markdown {
+    font-size: 14px;
+    line-height: 1.65;
+    color: $nbp-text;
+
+    h1, h2, h3 { font-family: $font-heading; color: $nbp-primary; }
+    h2 { font-size: 16px; margin: $sp-3 0 $sp-2; }
+    h3 { font-size: 14px; margin: $sp-2 0 4px; }
+    p { margin: 0 0 $sp-2; }
+    ul, ol { padding-left: $sp-5; margin: 0 0 $sp-2; }
+    strong { color: $nbp-primary; }
+    em { color: $nbp-text-muted; }
+    hr { border: none; border-top: 1px solid $nbp-border; margin: $sp-3 0; }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Decision (first) bubble
+// ---------------------------------------------------------------------------
+.decision-bubble {
+  background-color: #ffffff;
+  border: 2px solid $nbp-accent;
+  border-radius: $r-lg;
+  padding: $sp-5 $sp-6;
+  box-shadow: 0 2px 8px rgba(21, 46, 82, 0.1);
+
+  markdown {
+    font-size: 14px;
+    line-height: 1.65;
+    color: $nbp-text;
+
+    h1, h2, h3 { font-family: $font-heading; color: $nbp-primary; }
+    h2 { font-size: 18px; margin: 0 0 $sp-3; }
+    h3 { font-size: 15px; margin: $sp-4 0 $sp-2; }
+    p { margin: 0 0 $sp-3; }
+    ul, ol { padding-left: $sp-5; margin: 0 0 $sp-3; }
+    strong { color: $nbp-primary; }
+    hr { border: none; border-top: 1px solid $nbp-border; margin: $sp-4 0; }
+  }
+}
+
+.decision-disclaimer {
+  font-family: $font-body;
+  font-size: 12px;
+  color: $nbp-text-muted;
+  margin: $sp-4 0 0;
+  line-height: 1.55;
+  border-top: 1px solid $nbp-border;
+  padding-top: $sp-3;
+}
+
+// ---------------------------------------------------------------------------
+// Typing indicator
+// ---------------------------------------------------------------------------
+.typing-indicator {
+  display: none;
+  align-items: center;
+  gap: 4px;
+  padding: $sp-3 $sp-4;
+  background-color: #ffffff;
+  border: 1px solid $nbp-border;
+  border-radius: 0 $r-bubble $r-bubble $r-bubble;
+  width: fit-content;
+  box-shadow: 0 1px 3px rgba(21, 46, 82, 0.06);
+
+  &--visible {
+    display: flex;
+  }
+
+  .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: $nbp-accent;
+    animation: typing-bounce 1.2s ease-in-out infinite;
+
+    &:nth-child(1) { animation-delay: 0s; }
+    &:nth-child(2) { animation-delay: 0.2s; }
+    &:nth-child(3) { animation-delay: 0.4s; }
+  }
+}
+
+@keyframes typing-bounce {
+  0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+  40% { transform: scale(1); opacity: 1; }
+}
+
+// ---------------------------------------------------------------------------
+// Composer
+// ---------------------------------------------------------------------------
+.chat-composer {
+  display: flex;
+  gap: $sp-3;
+  align-items: flex-end;
+  padding: $sp-4 $sp-6;
+  border-top: 1px solid $nbp-border;
+  background-color: #ffffff;
+  flex-shrink: 0;
+}
+
+.composer-field {
+  flex: 1;
+
+  textarea {
+    font-family: $font-body;
+    font-size: 14px;
+    resize: none;
+  }
+}
+
+.send-btn {
+  background-color: $nbp-accent;
+  color: #ffffff;
+  font-family: $font-body;
+  font-weight: 500;
+  border-radius: $r-md;
+  padding: $sp-2 $sp-5;
+  min-width: 100px;
+  flex-shrink: 0;
+  margin-bottom: 22px; // align with mat-form-field bottom
+
+  mat-icon {
+    margin-right: 6px;
+    font-size: 18px;
+    height: 18px;
+    width: 18px;
+  }
+
+  &:hover:not([disabled]) {
+    background-color: #3C6398;
+  }
+
+  &[disabled] {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}

@@ -53,6 +53,13 @@
             <version>0.4.20</version>
         </dependency>
 
+        <!-- TwelveMonkeys WebP ImageIO plugin — enables WebP decode in standard JRE (ADR-001 §6) -->
+        <dependency>
+            <groupId>com.twelvemonkeys.imageio</groupId>
+            <artifactId>imageio-webp</artifactId>
+            <version>3.13.1</version>
+        </dependency>
+
         <!-- spring-dotenv — load root .env into Spring properties in dev (ADR-005 §6) -->
         <dependency>
             <groupId>me.paulschwarz</groupId>
