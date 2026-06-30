@@ -1,53 +1,5 @@
-# Build output
-target/
-build/
-dist/
-.next/
-.vite/
 
-# IDE
-.idea/
-*.iws
-*.iml
-*.ipr
-.vscode/
-.settings/
-.classpath
-.project
-.factorypath
-.springBeans
-.sts4-cache
-
-# Node.js
-node_modules/
-
-# Playwright
-test-results/
-playwright-report/
-.playwright-mcp/
-
-# Logs
-logs/
-*.log
-
-# Secrets / credentials
-.env
-.env.local
-.env.production
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Local agent memory (user-specific)
-.claude/agent-memory-local/
-
-# Claude Code local settings & instructions (committed as example, uncomment to ignore)
-# .claude/settings.local.json
-# CLAUDE.local.md
-
-# Claude Code worktrees (local, per-session)
-.claude/worktrees/
-
-# stray agent-memory artifact
-app/frontend/.claude/
+# Playwright generated artifacts
+app/e2e/playwright-report/
+app/e2e/test-results/
+app/e2e/node_modules/
